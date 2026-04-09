@@ -4,7 +4,7 @@ import logging
 import json
 import re
 
-import requests
+from curl_cffi import requests
 from bs4 import BeautifulSoup
 from bs4 import ResultSet
 from common import Constans
@@ -21,17 +21,17 @@ from settings import Settings
 logger = logging.getLogger(__name__)
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-    "Accept-Language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Connection": "keep-alive",
-    "Upgrade-Insecure-Requests": "1",
-    "Sec-Fetch-Dest": "document",
-    "Sec-Fetch-Mode": "navigate",
-    "Sec-Fetch-Site": "none",
-    "Sec-Fetch-User": "?1",
-    "Cache-Control": "max-age=0",
+    # "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    # "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    # "Accept-Language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
+    # "Accept-Encoding": "gzip, deflate, br",
+    # "Connection": "keep-alive",
+    # "Upgrade-Insecure-Requests": "1",
+    # "Sec-Fetch-Dest": "document",
+    # "Sec-Fetch-Mode": "navigate",
+    # "Sec-Fetch-Site": "none",
+    # "Sec-Fetch-User": "?1",
+    # "Cache-Control": "max-age=0",
 }
 
 
@@ -91,8 +91,8 @@ class Crawler:
 
             search_url = self.generate_search_url()
             response = requests.get(
-                url=search_url, params=self.params, headers=HEADERS, timeout=20
-            )
+                url=search_url, params=self.params, timeout=20,
+            impersonate="chrome")
             html = response.text
             print(f"Status: {response.status_code}, Length: {len(html)}")
             # --- DEBUG: SAVE RAW HTML ---
@@ -136,8 +136,8 @@ class Crawler:
         time.sleep(random.uniform(1.5, 3.5))
 
         response = requests.get(
-            url=self.generate_search_url(), params=params, headers=HEADERS, timeout=15
-        )
+            url=self.generate_search_url(), params=params, timeout=15,
+        impersonate="chrome")
         logger.info(f"Extracting listings from page {page}")
 
         html = response.text
@@ -232,8 +232,8 @@ class Crawler:
             try:
                 response = requests.get(
                     url=url,
-                    headers=HEADERS,
-                    timeout=15
+                    timeout=15,
+                    impersonate="chrome"
                 )
 
                 soup = BeautifulSoup(response.content, "html.parser")
