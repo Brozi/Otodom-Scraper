@@ -4,7 +4,7 @@ import logging
 import json
 import re
 
-from curl_cffi import session
+from curl_cffi import requests
 from bs4 import BeautifulSoup
 from bs4 import ResultSet
 from common import Constans
@@ -47,7 +47,7 @@ class Crawler:
         """
         Initialize the crawler.
         """
-        self.session = session.Session()
+        self.session = requests.Session(impersonate="chrome")
         self.settings: Settings = Settings()
         self.params: dict = self.generate_params()
         self.listings: list[Listing] = []
@@ -91,7 +91,7 @@ class Crawler:
             logger.info(f"Counting pages to crawl, try: {4 - max_retries}/3")
 
             search_url = self.generate_search_url()
-            response = session.get(
+            response = self.session.get(
                 url=search_url, params=self.params, timeout=20)
             html = response.text
             print(f"Status: {response.status_code}, Length: {len(html)}")
@@ -135,7 +135,7 @@ class Crawler:
         import time, random
         time.sleep(random.uniform(1.5, 3.5))
 
-        response = session.get(
+        response = self.session.get(
             url=self.generate_search_url(), params=params, timeout=15)
         logger.info(f"Extracting listings from page {page}")
 
@@ -227,7 +227,7 @@ class Crawler:
             time.sleep(random.uniform(0.5,  1.5))
 
             try:
-                response = session.get(
+                response = self.session.get(
                     url=url,
                     timeout=15)
 
