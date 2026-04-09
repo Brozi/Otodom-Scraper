@@ -241,8 +241,6 @@ class Settings:
     def set_default(self):
         """
         Set the settings to their default values.
-
-        These default values are defined in the Defaults class.
         """
         self.base_url = Constans.DEFAULT_URL
         self.price_min = Constans.DEFAULT_PRICE_MIN
@@ -250,6 +248,7 @@ class Settings:
         self.province = Constans.DEFAULT_PROVINCE
         self.city = Constans.DEFAULT_CITY
         self.district = Constans.DEFAULT_DISTRICT
+        self.property_types = [Constans.DEFAULT_PROPERTY_TYPE] # <--- ADDED
         self.property_type = Constans.DEFAULT_PROPERTY_TYPE
         self.auction_type = Constans.DEFAULT_AUCTION_TYPE
-        self.mongo_db_host = None  # Add this line!
+        self.mongo_db_host = None
