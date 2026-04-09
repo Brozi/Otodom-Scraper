@@ -211,6 +211,8 @@ class Crawler:
             self.listings.append(listing)
 
     def try_get_listing_page(self, url: str) -> BeautifulSoup:
+        import time
+        import random
         """
         Tries to get the listing page.
 
@@ -222,12 +224,33 @@ class Crawler:
         """
         max_retries = 3
         while max_retries > 0:
-            response = requests.get(url=url, headers=HEADERS)
-            soup = BeautifulSoup(response.content, "html.parser")
-            if not PropertyDocument.informational_json_exists(soup):
+            # 1. Add a random delay before opening the apartment page
+            time.sleep(random.uniform(1.0, 2.5))
+
+            # 2. Add impersonate="chrome" if you are using curl_cffi!
+            # (If you are using standard requests, just remove impersonate="chrome")
+            try:
+                response = requests.get(
+                    url=url,
+                    headers=HEADERS,
+                    timeout=15
+                )
+
+                soup = BeautifulSoup(response.content, "html.parser")
+
+                if not PropertyDocument.informational_json_exists(soup):
+                    logger.warning(f"Blocked or missing JSON on {url}. Retrying...")
+                    time.sleep(3)  # Wait longer if we got blocked
+                    max_retries -= 1
+                    continue
+
+                return soup
+
+            except Exception as e:
+                logger.warning(f"Connection error on {url}: {e}")
+                time.sleep(3)
                 max_retries -= 1
-                continue
-            return soup
+
         raise DataExtractionError(url=url)
 
     def to_csv_file(self, filename: str) -> None:
