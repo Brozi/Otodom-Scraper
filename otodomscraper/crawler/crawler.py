@@ -269,7 +269,7 @@ class Crawler:
         pages = self.count_pages()
         with concurrent.futures.ThreadPoolExecutor(max_workers=25) as executor:
             listings = list(
-                executor.map(self.extract_listings_from_page, range(1, 2))
+                executor.map(self.extract_listings_from_page, range(1, pages + 1))
             )
 
         existing_links = PropertyService.get_all_links()
