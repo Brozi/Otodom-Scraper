@@ -1,7 +1,8 @@
 import concurrent.futures
 import csv
-import json
 import logging
+import json
+import re
 
 import requests
 from bs4 import BeautifulSoup
@@ -20,7 +21,17 @@ from settings import Settings
 logger = logging.getLogger(__name__)
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"  # noqa: E501
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    "Accept-Language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
+    "Sec-Fetch-User": "?1",
+    "Cache-Control": "max-age=0",
 }
 
 
@@ -72,59 +83,43 @@ class Crawler:
 
     def count_pages(self) -> int:
         """
-        Count the number of pages to crawl with given parameters.
-
-        :return: The number of pages to crawl
+        Count the number of pages to crawl using Regex to bypass HTML parser limits.
         """
-        search_url = self.generate_search_url()
         max_retries = 3
         while max_retries > 0:
-            logger.info("Counting pages to crawl, try: " + str(4 - max_retries) + "/3")
+            logger.info(f"Counting pages to crawl, try: {4 - max_retries}/3")
+
+            search_url = self.generate_search_url()
             response = requests.get(
-                url=self.generate_search_url(), params=self.params, headers=HEADERS
+                url=search_url, params=self.params, headers=HEADERS, timeout=20
             )
-            # --- DEBUG START ---
-            print("\n--- DEBUG count_pages() ---")
-            print("Requested base URL: ", search_url)
-            print("Requested params:   ", self.params)
-            print("Response.url:       ", response.url)  # includes params + redirects
-            print("Status code:        ", response.status_code)
-            print("Final location:     ", response.headers.get("Location"))
-            print("Redirect history:")
-            for r in response.history:
-                print("  ", r.status_code, r.url, "->", r.headers.get("Location"))
-            print("Response length:    ", len(response.text))
-
+            html = response.text
+            print(f"Status: {response.status_code}, Length: {len(html)}")
+            # --- DEBUG: SAVE RAW HTML ---
             with open("debug_page.html", "w", encoding="utf-8") as f:
-                f.write(response.text)
-            print("Saved raw HTML to debug_page.html")
-            print("---------------------------\n")
-            # --- DEBUG END ---
-            soup = BeautifulSoup(response.content, "html.parser")
+                f.write(html)
+            print("Saved raw HTML to 'debug_page.html'")
+            # ----------------------------
 
-            # 1. Grab ALL buttons that have this attribute
-            buttons = soup.select('a[aria-current]')
+            # This regex perfectly matches your exact tag and ignores the extra attributes
+            match = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', response.text, re.DOTALL)
 
-            page_numbers = []
+            if match:
+                try:
+                    json_text = match.group(1)
+                    data = json.loads(json_text)
 
-            # 2. Loop through every button we found
-            for btn in buttons:
-                text = btn.text.strip()
+                    page_count = data["props"]["pageProps"]["tracking"]["listing"]["page_count"]
 
-                # 3. THE MAGIC FIX: isdigit() checks if the text is ONLY numbers.
-                # If the text is "Identyfikator wyszukiwania", isdigit() is False
-                # and Python will safely ignore it!
-                if text.isdigit():
-                    page_numbers.append(int(text))
+                    logger.info(f"Found {page_count} pages to crawl (from JSON data)")
+                    return int(page_count)
 
-            if len(page_numbers) == 0:
-                max_retries -= 1
-                continue
+                except (KeyError, TypeError, ValueError) as e:
+                    logger.warning(f"Error extracting page_count from JSON: {e}")
+            else:
+                logger.warning("__NEXT_DATA__ script tag not found in the raw HTML string.")
 
-            # 4. Find the highest valid number we collected
-            pages = max(page_numbers)
-            logger.info(f"Found {pages} pages to crawl")
-            return pages
+            max_retries -= 1
 
         logger.warning("No listings found with given parameters. Exiting...")
         exit(1)

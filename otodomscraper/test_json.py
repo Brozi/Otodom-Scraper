@@ -9,6 +9,7 @@ soup = BeautifulSoup(html, "html.parser")
 
 # Find the magic script tag
 script_tag = soup.find("script", id="__NEXT_DATA__")
+print(script_tag)
 
 if script_tag:
     # Convert the text inside the tag into a Python dictionary
