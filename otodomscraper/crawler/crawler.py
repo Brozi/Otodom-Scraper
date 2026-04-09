@@ -4,7 +4,7 @@ import logging
 import json
 import re
 
-from curl_cffi import requests
+from curl_cffi import session
 from bs4 import BeautifulSoup
 from bs4 import ResultSet
 from common import Constans
@@ -26,7 +26,7 @@ HEADERS = {
     # "Accept-Language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
     # "Accept-Encoding": "gzip, deflate, br",
     # "Connection": "keep-alive",
-    # "Upgrade-Insecure-Requests": "1",
+    # "Upgrade-Insecure-session": "1",
     # "Sec-Fetch-Dest": "document",
     # "Sec-Fetch-Mode": "navigate",
     # "Sec-Fetch-Site": "none",
@@ -47,6 +47,7 @@ class Crawler:
         """
         Initialize the crawler.
         """
+        self.session = session.Session()
         self.settings: Settings = Settings()
         self.params: dict = self.generate_params()
         self.listings: list[Listing] = []
@@ -90,9 +91,8 @@ class Crawler:
             logger.info(f"Counting pages to crawl, try: {4 - max_retries}/3")
 
             search_url = self.generate_search_url()
-            response = requests.get(
-                url=search_url, params=self.params, timeout=20,
-            impersonate="chrome")
+            response = session.get(
+                url=search_url, params=self.params, timeout=20)
             html = response.text
             print(f"Status: {response.status_code}, Length: {len(html)}")
             # --- DEBUG: SAVE RAW HTML ---
@@ -135,9 +135,8 @@ class Crawler:
         import time, random
         time.sleep(random.uniform(1.5, 3.5))
 
-        response = requests.get(
-            url=self.generate_search_url(), params=params, timeout=15,
-        impersonate="chrome")
+        response = session.get(
+            url=self.generate_search_url(), params=params, timeout=15)
         logger.info(f"Extracting listings from page {page}")
 
         html = response.text
@@ -225,16 +224,12 @@ class Crawler:
         max_retries = 3
         while max_retries > 0:
             # 1. Add a random delay before opening the apartment page
-            time.sleep(random.uniform(1.0, 2.5))
+            time.sleep(random.uniform(0.5,  1.5))
 
-            # 2. Add impersonate="chrome" if you are using curl_cffi!
-            # (If you are using standard requests, just remove impersonate="chrome")
             try:
-                response = requests.get(
+                response = session.get(
                     url=url,
-                    timeout=15,
-                    impersonate="chrome"
-                )
+                    timeout=15)
 
                 soup = BeautifulSoup(response.content, "html.parser")
 
@@ -313,5 +308,5 @@ class Crawler:
                     valid_listings.append(item)
 
         # Change max_workers from 10 down to 3 to avoid instant IP bans
-        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             executor.map(self.extract_listing_data, valid_listings)
