@@ -157,7 +157,11 @@ class Settings:
         :return: The district
         """
         district = settings.get("district")
-        if not isinstance(district, str) or district == "":
+        if not isinstance(district, str):
+            logger.warning("District is not correct. District is set to default")
+            return Constans.DEFAULT_DISTRICT
+        district = district.strip()  # <-- ADD THIS
+        if district == "":
             logger.warning("District is not correct. District is set to default")
             return Constans.DEFAULT_DISTRICT
         return replace_polish_characters(district)
