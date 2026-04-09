@@ -312,5 +312,6 @@ class Crawler:
                     item["full_url"] = full_url
                     valid_listings.append(item)
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        # Change max_workers from 10 down to 3 to avoid instant IP bans
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
             executor.map(self.extract_listing_data, valid_listings)
