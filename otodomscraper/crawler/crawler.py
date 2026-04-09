@@ -267,12 +267,21 @@ class Crawler:
             )
 
         existing_links = PropertyService.get_all_links()
-        listings = {
-            listing_data
-            for sublist in listings
-            for listing_data in sublist
-            if Constans.DEFAULT_URL + PropertyDocument.extract_link(listing_data)
-            not in existing_links
-        }
+
+        # listing_data is now a JSON dictionary! We generate the link using the slug.
+        valid_listings = []
+        for sublist in listings:
+            for item in sublist:
+                slug = item.get("slug")
+                if not slug:
+                    continue
+                # Otodom URLs look like this: https://www.otodom.pl/pl/oferta/{slug}
+                full_url = f"{Constans.DEFAULT_URL}/pl/oferta/{slug}"
+
+                if full_url not in existing_links:
+                    # Save the generated URL inside the dictionary so we can use it later
+                    item["full_url"] = full_url
+                    valid_listings.append(item)
+
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-            executor.map(self.extract_listing_data, listings)
+            executor.map(self.extract_listing_data, valid_listings)
