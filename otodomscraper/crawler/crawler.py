@@ -287,7 +287,7 @@ class Crawler:
         pages = self.count_pages()
         with concurrent.futures.ThreadPoolExecutor(max_workers=25) as executor:
             listings = list(
-                executor.map(self.extract_listings_from_page, range(1, pages+1))
+                executor.map(self.extract_listings_from_page, range(1, 3))
             )
 
         existing_links = PropertyService.get_all_links()
@@ -308,5 +308,5 @@ class Crawler:
                     valid_listings.append(item)
 
         # Change max_workers from 10 down to 3 to avoid instant IP bans
-        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
             executor.map(self.extract_listing_data, valid_listings)
