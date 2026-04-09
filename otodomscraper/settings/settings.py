@@ -168,31 +168,33 @@ class Settings:
         return replace_polish_characters(district)
 
     @staticmethod
-    def __init_property_type(settings: dict) -> PropertyType:
+    def __init_property_type(settings: dict) -> list:
         """
-        Initialize the property type from the settings dictionary.
-
-        If the property type is not a string or is not recognized,
-        a warning message is logged and the default property type is returned.
-
-        :param settings: A dictionary containing the settings
-        :return: The property type
+        Initialize the property types. Supports both a string and a list of strings.
         """
-        property_type_str = settings.get("property_type")
-        if not isinstance(property_type_str, str):
-            logger.warning(
-                "Property type is not a string. Property type is set to default"
-            )
-            return Constans.DEFAULT_PROPERTY_TYPE
+        pt_data = settings.get("property_type")
 
-        property_type = get_property_type(property_type_str)
-        if property_type is None:
-            logger.warning(
-                "Property type is not correct. Property type is set to default"
-            )
-            return Constans.DEFAULT_PROPERTY_TYPE
+        # If user provided a single string, convert it into a list
+        if isinstance(pt_data, str):
+            pt_data = [pt_data]
 
-        return property_type
+        if not isinstance(pt_data, list):
+            logger.warning("Property type is not a string or list. Set to default")
+            return [Constans.DEFAULT_PROPERTY_TYPE]
+
+        valid_types = []
+        for pt_str in pt_data:
+            pt = get_property_type(pt_str)
+            if pt is not None:
+                valid_types.append(pt)
+            else:
+                logger.warning(f"Property type '{pt_str}' is not recognized. Skipping.")
+
+        if not valid_types:
+            logger.warning("No valid property types found. Set to default")
+            return [Constans.DEFAULT_PROPERTY_TYPE]
+
+        return valid_types
 
     @staticmethod
     def __init_auction_type(settings: dict) -> AuctionType:
