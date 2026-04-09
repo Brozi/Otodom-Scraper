@@ -119,10 +119,13 @@ class Crawler:
             else:
                 logger.warning("__NEXT_DATA__ script tag not found in the raw HTML string.")
 
+            import time
+            time.sleep(5)
             max_retries -= 1
 
         logger.warning("No listings found with given parameters. Exiting...")
-        exit(1)
+        # CHANGE THIS LINE:
+        raise Exception("Failed to get page count. Probably blocked by Cloudflare (405).")
 
     def extract_listings_from_page(self, page: int) -> list:
         """
