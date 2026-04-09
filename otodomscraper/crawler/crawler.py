@@ -184,6 +184,9 @@ class Crawler:
         # Read directly from the JSON dictionary we passed!
         property_.link = listing_data["full_url"]
         property_.is_promoted = listing_data.get("isPromoted", False)
+        # --- ADD THIS PRINT ---
+        print(f" Found apartment! Visiting: {property_.link}")
+        # ----------------------
 
         try:
             soup = self.try_get_listing_page(url=property_.link)
