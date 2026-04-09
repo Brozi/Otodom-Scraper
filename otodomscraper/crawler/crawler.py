@@ -48,16 +48,14 @@ class Crawler:
         :return: The URL to crawl
         """
         url = self.settings.base_url
-
         url += "/pl/wyniki/"
-        url += self.settings.auction_type.value + "/"
-        url += self.settings.property_type.value + "/"
-        url += self.settings.province + "/"
-        url += self.settings.city + "/"
-        if self.settings.district is not None:
-            url += self.settings.city + "/"
-            url += self.settings.city + "/"
-            url += self.settings.district + "/"
+        url += f"{self.settings.auction_type.value}/"
+        url += f"{self.settings.property_type.value}/"
+        url += f"{self.settings.province}/"
+        url += f"{self.settings.city}/"
+
+        if self.settings.district:
+            url += f"{self.settings.district}/"
 
         return url
 
@@ -78,16 +76,34 @@ class Crawler:
 
         :return: The number of pages to crawl
         """
+        search_url = self.generate_search_url()
         max_retries = 3
         while max_retries > 0:
             logger.info("Counting pages to crawl, try: " + str(4 - max_retries) + "/3")
             response = requests.get(
                 url=self.generate_search_url(), params=self.params, headers=HEADERS
             )
+            # --- DEBUG START ---
+            print("\n--- DEBUG count_pages() ---")
+            print("Requested base URL: ", search_url)
+            print("Requested params:   ", self.params)
+            print("Response.url:       ", response.url)  # includes params + redirects
+            print("Status code:        ", response.status_code)
+            print("Final location:     ", response.headers.get("Location"))
+            print("Redirect history:")
+            for r in response.history:
+                print("  ", r.status_code, r.url, "->", r.headers.get("Location"))
+            print("Response length:    ", len(response.text))
+
+            with open("debug_page.html", "w", encoding="utf-8") as f:
+                f.write(response.text)
+            print("Saved raw HTML to debug_page.html")
+            print("---------------------------\n")
+            # --- DEBUG END ---
             soup = BeautifulSoup(response.content, "html.parser")
 
             # 1. Grab ALL buttons that have this attribute
-            buttons = soup.select('button[data-nx-name="UnstyledButton"]')
+            buttons = soup.select('a[aria-current]')
 
             page_numbers = []
 
