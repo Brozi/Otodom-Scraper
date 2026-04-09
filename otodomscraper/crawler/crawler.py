@@ -180,8 +180,11 @@ class Crawler:
         """
         listing = Listing()
         property_ = PropertyDocument()
-        property_.set_link(listing_data)
-        property_.set_promoted(listing_data)
+
+        # Read directly from the JSON dictionary we passed!
+        property_.link = listing_data["full_url"]
+        property_.is_promoted = listing_data.get("isPromoted", False)
+
         try:
             soup = self.try_get_listing_page(url=property_.link)
         except DataExtractionError as e:
