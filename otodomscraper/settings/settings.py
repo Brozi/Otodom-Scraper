@@ -245,3 +245,4 @@ class Settings:
         self.district = Constans.DEFAULT_DISTRICT
         self.property_type = Constans.DEFAULT_PROPERTY_TYPE
         self.auction_type = Constans.DEFAULT_AUCTION_TYPE
+        self.mongo_db_host = None  # Add this line!

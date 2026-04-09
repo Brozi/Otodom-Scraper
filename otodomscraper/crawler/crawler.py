@@ -85,13 +85,31 @@ class Crawler:
                 url=self.generate_search_url(), params=self.params, headers=HEADERS
             )
             soup = BeautifulSoup(response.content, "html.parser")
-            pages_element = soup.select("button[aria-current][data-cy]")
-            if len(pages_element) == 0:
+
+            # 1. Grab ALL buttons that have this attribute
+            buttons = soup.select('button[data-nx-name="UnstyledButton"]')
+
+            page_numbers = []
+
+            # 2. Loop through every button we found
+            for btn in buttons:
+                text = btn.text.strip()
+
+                # 3. THE MAGIC FIX: isdigit() checks if the text is ONLY numbers.
+                # If the text is "Identyfikator wyszukiwania", isdigit() is False
+                # and Python will safely ignore it!
+                if text.isdigit():
+                    page_numbers.append(int(text))
+
+            if len(page_numbers) == 0:
                 max_retries -= 1
                 continue
-            pages = pages_element[-1].text
+
+            # 4. Find the highest valid number we collected
+            pages = max(page_numbers)
             logger.info(f"Found {pages} pages to crawl")
-            return int(pages)
+            return pages
+
         logger.warning("No listings found with given parameters. Exiting...")
         exit(1)
 
