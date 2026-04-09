@@ -15,6 +15,6 @@
         }
     },
     "database" : {
-        "host": "mongodb+srv://JanB:Burger1221%40%40@cluster0.ywctxmc.mongodb.net/?appName=Cluster0"
+        "host": "mongodb+srv://JanB:Burger1221%40%40@cluster0.ywctxmc.mongodb.net/otodom_data?appName=Cluster0"
     }
 }
