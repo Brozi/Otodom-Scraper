@@ -124,22 +124,45 @@ class Crawler:
         logger.warning("No listings found with given parameters. Exiting...")
         exit(1)
 
-    def extract_listings_from_page(self, page: int) -> set:
+    def extract_listings_from_page(self, page: int) -> list:
         """
-        Crawl the given page.
-
-        :param page: The page number to crawl
-        :return: The listings on the page
+        Crawl the given page and extract listings from the Next.js JSON.
         """
         params = self.params.copy()
         params["page"] = page
+
+        # Add a delay so you don't get blocked again!
+        import time, random
+        time.sleep(random.uniform(1.5, 3.5))
+
         response = requests.get(
-            url=self.generate_search_url(), params=params, headers=HEADERS, timeout=10
+            url=self.generate_search_url(), params=params, headers=HEADERS, timeout=15
         )
         logger.info(f"Extracting listings from page {page}")
-        soup = BeautifulSoup(response.content, "html.parser")
-        listings = soup.select("div[data-cy=listing-item]")
-        return listings
+
+        html = response.text
+        marker = 'id="__NEXT_DATA__"'
+
+        if marker in html:
+            try:
+                tag_start = html.find(marker)
+                json_start = html.find('>', tag_start) + 1
+                json_end = html.find('</script>', json_start)
+
+                json_text = html[json_start:json_end].strip()
+                data = json.loads(json_text)
+
+                # Navigate to the items list based on standard Next.js structure
+                # Note: otodom usually puts it here:
+                items = data["props"]["pageProps"]["data"]["searchAds"]["items"]
+                return items
+
+            except Exception as e:
+                logger.warning(f"Error extracting items on page {page}: {e}")
+                return []
+        else:
+            logger.warning(f"__NEXT_DATA__ not found on page {page}.")
+            return []
 
     def extract_listing_data(self, listing_data: ResultSet) -> None:
         """
