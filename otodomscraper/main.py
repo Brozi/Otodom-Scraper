@@ -2,50 +2,62 @@ from crawler import Crawler
 
 
 def main():
-    crawler = Crawler()
+    base_crawler = Crawler()
+    original_min = base_crawler.settings.price_min
+    original_max = base_crawler.settings.price_max
 
-    # Save the original min and max prices from your settings.json
-    original_min = crawler.settings.price_min
-    original_max = crawler.settings.price_max
-
-    # Define how big each price chunk should be (300,000 PLN is very safe)
     CHUNK_STEP = 300000
 
-    # Loop through property types (flats, houses)
-    for p_type in crawler.settings.property_types:
-        crawler.settings.property_type = p_type
+    # Create a master list to hold ALL apartments across all chunks
+    all_listings = []
 
-        print(f"\n{'=' * 60}")
-        print(f" Starting property type: {p_type.value.upper()}")
-        print(f"{'=' * 60}")
+    try:
+        for p_type in base_crawler.settings.property_types:
+            print(f"\n{'=' * 60}")
+            print(f"Starting property type: {p_type.value.upper()}")
+            print(f"{'=' * 60}")
 
-        # Start the chunking loop!
-        current_min = original_min
+            current_min = original_min
 
-        while current_min < original_max:
-            # Calculate the max price for this specific chunk
-            current_max = current_min + CHUNK_STEP
+            while current_min < original_max:
+                current_max = current_min + CHUNK_STEP
+                if current_max > original_max:
+                    current_max = original_max
 
-            # Make sure the chunk doesn't exceed your overall max price
-            if current_max > original_max:
-                current_max = original_max
+                print(f"\n---> Scraping chunk: {current_min} PLN to {current_max} PLN")
 
-            print(f"\n---> Scraping chunk: {current_min} PLN to {current_max} PLN")
+                chunk_crawler = Crawler()
+                chunk_crawler.settings.property_type = p_type
+                chunk_crawler.settings.price_min = current_min
+                chunk_crawler.settings.price_max = current_max
 
-            # Temporarily trick the crawler's settings
-            crawler.settings.price_min = current_min
-            crawler.settings.price_max = current_max
+                # ADD THIS LINE: Force it to rebuild the URL parameters!
+                chunk_crawler.params = chunk_crawler.generate_params()
 
-            # Run the scraper for just this small price range
-            crawler.start()
+                chunk_crawler.start()
 
-            # Move the minimum up for the next loop (+1 to avoid overlapping prices)
-            current_min = current_max + 1
+                # After the chunk finishes, grab its scraped data and add it to our master list
+                if hasattr(chunk_crawler, 'listings'):
+                    all_listings.extend(chunk_crawler.listings)
 
-    # After ALL types and ALL price chunks are done, save to one big CSV!
-    print("\nAll chunks finished! Saving to CSV...")
-    crawler.to_csv_file("listings.csv")
+                current_min = current_max + 1
+
+    except KeyboardInterrupt:
+        print("\nManually stopped by user!")
+    except Exception as e:
+        print(f"\nBLOCK DETECTED OR CRITICAL ERROR: {e}")
+
+    finally:
+        print(f"\nScript finished! Gathered {len(all_listings)} total listings.")
+        print("Saving gathered data to CSV...")
+
+        # Give all the gathered data back to the base crawler so it can export it
+        if hasattr(base_crawler, 'listings'):
+            base_crawler.listings = all_listings
+            base_crawler.to_csv_file("listings.csv")
+        else:
+            print("Could not find the listings list to save the CSV.")
 
 
-if "__main__" == __name__:
+if __name__ == "__main__":
     main()
