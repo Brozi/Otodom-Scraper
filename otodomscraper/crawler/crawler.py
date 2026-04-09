@@ -224,7 +224,7 @@ class Crawler:
         max_retries = 3
         while max_retries > 0:
             # 1. Add a random delay before opening the apartment page
-            time.sleep(random.uniform(0.5,  1.5))
+            time.sleep(random.uniform(1.0,  2.5))
 
             try:
                 response = self.session.get(
