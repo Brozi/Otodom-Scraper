@@ -45,8 +45,6 @@ class Settings:
     def __init__(self):
         """
         Initialize the Settings object by loading the settings from a JSON file.
-
-        If the file cannot be loaded, the settings are set to default values.
         """
         logger.info("Loading settings")
         try:
@@ -58,14 +56,17 @@ class Settings:
                 self.province = self.__init_province(crawler_settings)
                 self.city = self.__init_city(crawler_settings)
                 self.district = self.__init_district(crawler_settings)
-                self.property_type = self.__init_property_type(crawler_settings)
+
+                # --- CHANGED: Load a list of types ---
+                self.property_types = self.__init_property_type(crawler_settings)
+                self.property_type = self.property_types[0]  # Set active type for initialization
+                # -------------------------------------
+
                 self.auction_type = self.__init_auction_type(crawler_settings)
                 self.mongo_db_host = self.__init_mongo_db_host(settings["database"])
 
         except Exception as e:
-            logger.warning(
-                f"Error loading the settings. Settings are set to default. Error: {e}",
-            )
+            logger.warning(f"Error loading the settings. Settings are set to default. Error: {e}")
             self.set_default()
         logger.info("Running config: " + str(self.__dict__))
 
