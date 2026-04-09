@@ -1,4 +1,6 @@
 from crawler import Crawler
+import time
+import random
 
 
 def main():
@@ -41,6 +43,8 @@ def main():
                     all_listings.extend(chunk_crawler.listings)
 
                 current_min = current_max + 1
+                print("Waiting a few seconds before the next chunk...")
+                time.sleep(random.uniform(5.0, 10.0))
 
     except KeyboardInterrupt:
         print("\nManually stopped by user!")
