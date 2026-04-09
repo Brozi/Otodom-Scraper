@@ -163,3 +163,4 @@ cython_debug/
 test.html
 listings.csv
 listings.json
+otodomscraper/settings.json
