@@ -8,6 +8,8 @@ def main():
     original_min = base_crawler.settings.price_min
     original_max = base_crawler.settings.price_max
 
+    original_max = 300000
+
     CHUNK_STEP = 300000
 
     # Create a master list to hold ALL apartments across all chunks
