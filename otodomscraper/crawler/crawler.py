@@ -124,7 +124,6 @@ class Crawler:
         # 2. Stop the script so we don't lose data.
         raise Exception("CRITICAL: Failed to count pages 3 times. IP is temporarily blocked.")
 
-
     def extract_listings_from_page(self, page: int) -> list:
         """
         Crawl the given page and extract listings from the Next.js JSON.
@@ -132,37 +131,54 @@ class Crawler:
         params = self.params.copy()
         params["page"] = page
 
-        # Add a delay so you don't get blocked again!
         import time, random
-        time.sleep(random.uniform(1.5, 3.5))
+        max_retries = 3
 
-        response = self.session.get(
-            url=self.generate_search_url(), params=params, timeout=15)
-        logger.info(f"Extracting listings from page {page}")
+        while max_retries > 0:
+            # Add a random delay so workers don't hit the server at the exact same millisecond
+            time.sleep(random.uniform(1.5, 4.0))
 
-        html = response.text
-        marker = 'id="__NEXT_DATA__"'
-
-        if marker in html:
             try:
-                tag_start = html.find(marker)
-                json_start = html.find('>', tag_start) + 1
-                json_end = html.find('</script>', json_start)
+                response = self.session.get(
+                    url=self.generate_search_url(), params=params, timeout=15)
 
-                json_text = html[json_start:json_end].strip()
-                data = json.loads(json_text)
+                # --- WORKER BLOCK DETECTION ---
+                if response.status_code in [403, 405, 429]:
+                    logger.warning(f"DATADOME BLOCK on page {page}! Sleeping 35s...")
+                    time.sleep(35)
+                    # Refresh the browser session to clear the block
+                    from curl_cffi import requests as cffi_requests
+                    self.session = cffi_requests.Session(impersonate="chrome")
+                    max_retries -= 1
+                    continue
+                # ------------------------------
 
-                # Navigate to the items list based on standard Next.js structure
-                # Note: otodom usually puts it here:
-                items = data["props"]["pageProps"]["data"]["searchAds"]["items"]
-                return items
+                logger.info(f"Extracting listings from page {page}")
+                html = response.text
+                marker = 'id="__NEXT_DATA__"'
+
+                if marker in html:
+                    tag_start = html.find(marker)
+                    json_start = html.find('>', tag_start) + 1
+                    json_end = html.find('</script>', json_start)
+
+                    json_text = html[json_start:json_end].strip()
+                    data = json.loads(json_text)
+
+                    items = data["props"]["pageProps"]["data"]["searchAds"]["items"]
+                    return items
+                else:
+                    logger.warning(f"__NEXT_DATA__ not found on page {page}. Status Code: {response.status_code}")
+                    time.sleep(5)
+                    max_retries -= 1
 
             except Exception as e:
                 logger.warning(f"Error extracting items on page {page}: {e}")
-                return []
-        else:
-            logger.warning(f"__NEXT_DATA__ not found on page {page}. Status Code: {response.status_code}")
-            return []
+                time.sleep(5)
+                max_retries -= 1
+
+        logger.error(f"CRITICAL: Failed to extract page {page} after 3 retries. Skipping page.")
+        return []
 
     def extract_listing_data(self, listing_data: ResultSet) -> None:
         """
