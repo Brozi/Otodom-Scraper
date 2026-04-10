@@ -1,5 +1,3 @@
-import pandas
-
 from crawler import Crawler
 import time
 import random
