@@ -163,7 +163,7 @@ class Crawler:
                 logger.warning(f"Error extracting items on page {page}: {e}")
                 return []
         else:
-            logger.warning(f"__NEXT_DATA__ not found on page {page}.")
+            logger.warning(f"__NEXT_DATA__ not found on page {page}. Status Code: {response.status_code}")
             return []
 
     def extract_listing_data(self, listing_data: ResultSet) -> None:
