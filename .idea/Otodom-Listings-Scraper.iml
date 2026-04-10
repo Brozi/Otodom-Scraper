@@ -6,11 +6,7 @@
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/otodomscraper/.venv" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.14 (Otodom-Scraper)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.14 (Otodom-Listings-Scraper)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-  </component>
-  <component name="PyDocumentationSettings">
-    <option name="format" value="GOOGLE" />
-    <option name="myDocStringFormat" value="Google" />
   </component>
 </module>
