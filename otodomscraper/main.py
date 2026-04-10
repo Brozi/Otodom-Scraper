@@ -59,19 +59,21 @@ def main():
 
                 print(f"\n---> Scraping chunk: {current_min} PLN to {current_max} PLN")
 
-                chunk_crawler = Crawler()
-                chunk_crawler.settings.property_type = p_type
-                chunk_crawler.settings.price_min = current_min
-                chunk_crawler.settings.price_max = current_max
+                base_crawler.settings.property_type = p_type
+                base_crawler.settings.price_min = current_min
+                base_crawler.settings.price_max = current_max
 
-                # ADD THIS LINE: Force it to rebuild the URL parameters!
-                chunk_crawler.params = chunk_crawler.generate_params()
+                # Force it to rebuild the URL parameters
+                base_crawler.params = base_crawler.generate_params()
 
-                chunk_crawler.start()
+                base_crawler.start()
 
                 # After the chunk finishes, grab its scraped data and add it to our master list
-                if hasattr(chunk_crawler, 'listings'):
-                    all_listings.extend(chunk_crawler.listings)
+                if hasattr(base_crawler, 'listings'):
+                    all_listings.extend(base_crawler.listings)
+                    base_crawler.listings = []
+                else:
+                    print("Warning: base_crawler has no listings attribute!")
 
                 current_min = current_max + 1
                 print("Waiting a few seconds before the next chunk...")
@@ -92,7 +94,6 @@ def main():
             base_crawler.to_csv_file("listings.csv")
         else:
             print("Could not find the listings list to save the CSV.")
-
 
 if __name__ == "__main__":
     main()
