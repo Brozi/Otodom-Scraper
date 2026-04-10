@@ -1,30 +1,37 @@
 from crawler import Crawler
 import time
 import random
-
+import re
 import sys
 import datetime
 
-class DualLogger:
-    def __init__(self, filename):
-        self.terminal = sys.stdout
+class TerminalLogger:
+    def __init__(self, filename, stream):
+        self.terminal = stream
         self.log_file = open(filename, "a", encoding="utf-8")
+        # This removes the ugly color codes from the text file
+        self.ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
     def write(self, message):
+        # 1. Print to the terminal normally (keeps red colors intact!)
         self.terminal.write(message)
-        self.log_file.write(message)
-        self.log_file.flush()  # Instantly saves to the file
+
+        # 2. Save a clean, color-free version to the text file
+        clean_msg = self.ansi_escape.sub('', message)
+        self.log_file.write(clean_msg)
+        self.log_file.flush()
 
     def flush(self):
         self.terminal.flush()
         self.log_file.flush()
 
-# Generate a filename with the current date/time
+
+# Generate the log file name
 log_filename = datetime.datetime.now().strftime("scraper_log_%Y-%m-%d_%H-%M-%S.txt")
 
-# Redirect all print statements and errors to our DualLogger
-sys.stdout = DualLogger(log_filename)
-sys.stderr = sys.stdout  # This captures crash errors too!
+# Intercept BOTH standard prints and error/warning messages
+sys.stdout = TerminalLogger(log_filename, sys.stdout)
+sys.stderr = TerminalLogger(log_filename, sys.stderr)
 
 
 def main():
