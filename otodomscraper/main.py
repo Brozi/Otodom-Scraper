@@ -87,6 +87,7 @@ def main():
     base_crawler = Crawler()
     original_min = base_crawler.settings.price_min
     original_max = base_crawler.settings.price_max
+    CHUNK_STEP = 300000
 
     all_listings = []
 
@@ -98,8 +99,23 @@ def main():
 
             base_crawler.settings.property_type = p_type
 
-            # Start the dynamic chunking process
-            scrape_dynamic_chunk(base_crawler, original_min, original_max, all_listings)
+            # Reset current_min for each property type
+            current_min = original_min
+
+            # Loop through the base 300k chunks
+            while current_min < original_max:
+                current_max = current_min + CHUNK_STEP
+                if current_max > original_max:
+                    current_max = original_max
+
+                print(f"\n---> Starting Base Chunk: {current_min} PLN to {current_max} PLN")
+
+                # Pass the 300k chunk into the dynamic splitter.
+                # If it's < 100 pages, it scrapes it immediately.
+                # If it's > 100 pages, it splits it down into 150k chunks automatically!
+                scrape_dynamic_chunk(base_crawler, current_min, current_max, all_listings)
+
+                current_min = current_max + 1
 
     except KeyboardInterrupt:
         print("\nManually stopped by user!")
@@ -115,6 +131,7 @@ def main():
             base_crawler.to_csv_file("listings.csv")
         else:
             print("Could not find the listings list to save the CSV.")
+
 
 if __name__ == "__main__":
     main()
