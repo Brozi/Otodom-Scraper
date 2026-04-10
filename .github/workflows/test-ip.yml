@@ -1,0 +1,23 @@
+name: Quick IP Test
+
+# This adds a manual "Run workflow" button in GitHub
+on: workflow_dispatch
+
+jobs:
+  test-connection:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install just the required library
+        run: pip install curl_cffi
+
+      - name: Run the IP test
+        run: python test_ip.py
