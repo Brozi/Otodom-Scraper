@@ -287,7 +287,6 @@ class Crawler:
 
         The crawler starts crawling the website and extracting the data.
         """
-        pages = self.count_pages()
         with concurrent.futures.ThreadPoolExecutor(max_workers=25) as executor:
             listings = list(
                 executor.map(self.extract_listings_from_page, range(1, pages + 1))

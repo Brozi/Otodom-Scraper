@@ -34,14 +34,60 @@ sys.stdout = TerminalLogger(log_filename, sys.stdout)
 sys.stderr = TerminalLogger(log_filename, sys.stderr)
 
 
+def scrape_dynamic_chunk(crawler, current_min, current_max, master_list):
+    """Recursively splits chunks if they have more than 100 pages."""
+    if current_min > current_max:
+        return
+
+    print(f"\n---> Checking chunk: {current_min} PLN to {current_max} PLN")
+
+    # 1. Setup crawler for this exact chunk
+    crawler.settings.price_min = current_min
+    crawler.settings.price_max = current_max
+    crawler.params = crawler.generate_params()
+
+    # 2. Count the pages
+    pages = crawler.count_pages()
+
+    # 3. Base case: 0 pages (Skip)
+    if pages == 0:
+        print(f"Skipping chunk {current_min} - {current_max} PLN (0 listings)")
+        return
+
+    # 4. Recursive case: Over 100 pages (Split in half)
+    if pages > 100:
+        print(f"Chunk {current_min} - {current_max} has {pages} pages (>100 limit). Splitting in half...")
+        mid_price = (current_min + current_max) // 2
+
+        # Run first half
+        scrape_dynamic_chunk(crawler, current_min, mid_price, master_list)
+
+        time.sleep(random.uniform(3.0, 5.0))  # Small delay between splits
+
+        # Run second half
+        scrape_dynamic_chunk(crawler, mid_price + 1, current_max, master_list)
+
+    # 5. Base case: Safe to scrape (1 to 100 pages)
+    else:
+        print(f"Scraping SAFE chunk: {current_min} - {current_max} PLN ({pages} pages)")
+
+        # Pass the pre-counted pages directly to start()!
+        crawler.start(pages)
+
+        # Store results and clear memory
+        if hasattr(crawler, 'listings'):
+            master_list.extend(crawler.listings)
+            crawler.listings = []
+
+        print("Waiting a few seconds before the next chunk...")
+        time.sleep(random.uniform(5.0, 10.0))
+
+
 def main():
     base_crawler = Crawler()
     original_min = base_crawler.settings.price_min
     original_max = base_crawler.settings.price_max
 
-    CHUNK_STEP = 300000
-
-    # Create a master list to hold ALL apartments across all chunks
     all_listings = []
 
     try:
@@ -50,34 +96,10 @@ def main():
             print(f"Starting property type: {p_type.value.upper()}")
             print(f"{'=' * 60}")
 
-            current_min = original_min
+            base_crawler.settings.property_type = p_type
 
-            while current_min < original_max:
-                current_max = current_min + CHUNK_STEP
-                if current_max > original_max:
-                    current_max = original_max
-
-                print(f"\n---> Scraping chunk: {current_min} PLN to {current_max} PLN")
-
-                base_crawler.settings.property_type = p_type
-                base_crawler.settings.price_min = current_min
-                base_crawler.settings.price_max = current_max
-
-                # Force it to rebuild the URL parameters
-                base_crawler.params = base_crawler.generate_params()
-
-                base_crawler.start()
-
-                # After the chunk finishes, grab its scraped data and add it to our master list
-                if hasattr(base_crawler, 'listings'):
-                    all_listings.extend(base_crawler.listings)
-                    base_crawler.listings = []
-                else:
-                    print("Warning: base_crawler has no listings attribute!")
-
-                current_min = current_max + 1
-                print("Waiting a few seconds before the next chunk...")
-                time.sleep(random.uniform(5.0, 10.0))
+            # Start the dynamic chunking process
+            scrape_dynamic_chunk(base_crawler, original_min, original_max, all_listings)
 
     except KeyboardInterrupt:
         print("\nManually stopped by user!")
@@ -88,7 +110,6 @@ def main():
         print(f"\nScript finished! Gathered {len(all_listings)} total listings.")
         print("Saving gathered data to CSV...")
 
-        # Give all the gathered data back to the base crawler so it can export it
         if hasattr(base_crawler, 'listings'):
             base_crawler.listings = all_listings
             base_crawler.to_csv_file("listings.csv")
