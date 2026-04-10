@@ -2,6 +2,30 @@ from crawler import Crawler
 import time
 import random
 
+import sys
+import datetime
+
+class DualLogger:
+    def __init__(self, filename):
+        self.terminal = sys.stdout
+        self.log_file = open(filename, "a", encoding="utf-8")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log_file.write(message)
+        self.log_file.flush()  # Instantly saves to the file
+
+    def flush(self):
+        self.terminal.flush()
+        self.log_file.flush()
+
+# Generate a filename with the current date/time
+log_filename = datetime.datetime.now().strftime("scraper_log_%Y-%m-%d_%H-%M-%S.txt")
+
+# Redirect all print statements and errors to our DualLogger
+sys.stdout = DualLogger(log_filename)
+sys.stderr = sys.stdout  # This captures crash errors too!
+
 
 def main():
     base_crawler = Crawler()
