@@ -124,8 +124,8 @@ class Crawler:
             max_retries -= 1
 
         logger.warning("No listings found with given parameters. Exiting...")
-        # CHANGE THIS LINE:
-        raise Exception("Failed to get page count. Probably blocked by Cloudflare (405).")
+        print("Failed to get page count. Probably blocked by Cloudflare (405).")
+        return 0
 
     def extract_listings_from_page(self, page: int) -> list:
         """
