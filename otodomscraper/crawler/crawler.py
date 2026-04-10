@@ -288,10 +288,9 @@ class Crawler:
         The crawler starts crawling the website and extracting the data.
         """
         pages = self.count_pages()
-        max_test_pages = min(3, pages +1)
         with concurrent.futures.ThreadPoolExecutor(max_workers=25) as executor:
             listings = list(
-                executor.map(self.extract_listings_from_page, range(1, max_test_pages))
+                executor.map(self.extract_listings_from_page, range(1, 3))
             )
 
         existing_links = PropertyService.get_all_links()
@@ -310,7 +309,6 @@ class Crawler:
                     # Save the generated URL inside the dictionary so we can use it later
                     item["full_url"] = full_url
                     valid_listings.append(item)
-        valid_listings = valid_listings[:5]
 
         # Change max_workers from 10 down to 3 to avoid instant IP bans
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
