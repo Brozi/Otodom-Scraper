@@ -281,7 +281,7 @@ class Crawler:
                 indent=4,
             )
 
-    def start(self) -> None:
+    def start(self, pages: int) -> None:
         """
         Starts the crawler.
 
