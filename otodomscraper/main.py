@@ -130,7 +130,7 @@ def main():
             base_crawler.listings = all_listings
             base_crawler.to_csv_file("listings.csv")
             from pandas import DataFrame, read_csv
-            df = pandas.read_csv("listings.csv")
+            df = read_csv("listings.csv")
             df.to_excel("listings.xlsx", index=False)
         else:
             print("Could not find the listings list to save the CSV.")
