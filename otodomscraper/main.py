@@ -47,7 +47,7 @@ def scrape_dynamic_chunk(crawler, current_min, current_max, master_list):
     crawler.params = crawler.generate_params()
 
     # 2. Count the pages
-    pages = crawler.count_pages()
+    pages, total_listings = crawler.count_pages()
 
     # 3. Base case: 0 pages (Skip)
     if pages == 0:
@@ -56,7 +56,7 @@ def scrape_dynamic_chunk(crawler, current_min, current_max, master_list):
 
     # 4. Recursive case: Over 100 pages (Split in half)
     if pages > 100:
-        print(f"Chunk {current_min} - {current_max} has {pages} pages (>100 limit). Splitting in half...")
+        print(f"Chunk {current_min} - {current_max} has {pages} pages (>100 limit), {total_listings} listings. Splitting in half...")
         mid_price = (current_min + current_max) // 2
 
         # Run first half
@@ -69,7 +69,7 @@ def scrape_dynamic_chunk(crawler, current_min, current_max, master_list):
 
     # 5. Base case: Safe to scrape (1 to 100 pages)
     else:
-        print(f"Scraping SAFE chunk: {current_min} - {current_max} PLN ({pages} pages)")
+        print(f"Scraping SAFE chunk: {current_min} - {current_max} PLN ({pages} pages, {total_listings} listings)")
 
         # Pass the pre-counted pages directly to start()!
         crawler.start(pages)

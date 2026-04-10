@@ -82,7 +82,7 @@ class Crawler:
             "priceMax": self.settings.price_max,
         }
 
-    def count_pages(self) -> int:
+    def count_pages(self) -> tuple:
         """
         Count the number of pages to crawl using Regex to bypass HTML parser limits.
         """
@@ -110,9 +110,10 @@ class Crawler:
                     data = json.loads(json_text)
 
                     page_count = data["props"]["pageProps"]["tracking"]["listing"]["page_count"]
+                    item_count = data["props"]["pageProps"]["tracking"]["listing"]["item_count"]
 
-                    logger.info(f"Found {page_count} pages to crawl (from JSON data)")
-                    return int(page_count)
+                    logger.info(f"Found {page_count} pages to crawl, and {item_count} listings")
+                    return int(page_count), int(item_count)
 
                 except (KeyError, TypeError, ValueError) as e:
                     logger.warning(f"Error extracting page_count from JSON: {e}")
@@ -125,7 +126,7 @@ class Crawler:
 
         logger.warning("No listings found with given parameters. Exiting...")
         print("Failed to get page count. Probably blocked by Cloudflare (405).")
-        return 0
+        return 0,0
 
     def extract_listings_from_page(self, page: int) -> list:
         """
