@@ -82,51 +82,47 @@ class Crawler:
             "priceMax": self.settings.price_max,
         }
 
-    def count_pages(self) -> tuple:
+    def count_pages(self) -> tuple[int, int] | None:
         """
         Count the number of pages to crawl using Regex to bypass HTML parser limits.
         """
         max_retries = 3
         while max_retries > 0:
             logger.info(f"Counting pages to crawl, try: {4 - max_retries}/3")
-
             search_url = self.generate_search_url()
-            response = self.session.get(
-                url=search_url, params=self.params, timeout=20)
+            response = self.session.get(url=search_url, params=self.params, timeout=20)
             html = response.text
             print(f"Status: {response.status_code}, Length: {len(html)}")
-            # --- DEBUG: SAVE RAW HTML ---
+            if response.status_code in [403, 405, 429]:
+                print("\nDATADOME BLOCK DETECTED! Sleeping 30s to cool down... ")
+                import time
+                time.sleep(30)
+                from curl_cffi import requests as cffi_requests
+                self.session = cffi_requests.Session(impersonate="chrome")  # Get fresh browser
+                max_retries -= 1
+                continue
+
             with open("debug_page.html", "w", encoding="utf-8") as f:
                 f.write(html)
-            print("Saved raw HTML to 'debug_page.html'")
-            # ----------------------------
 
-            # This regex perfectly matches your exact tag and ignores the extra attributes
-            match = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', response.text, re.DOTALL)
-
+            match = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', html, re.DOTALL)
             if match:
                 try:
-                    json_text = match.group(1)
-                    data = json.loads(json_text)
-
+                    data = json.loads(match.group(1))
                     page_count = data["props"]["pageProps"]["tracking"]["listing"]["page_count"]
                     item_count = data["props"]["pageProps"]["tracking"]["listing"]["item_count"]
-
-                    logger.info(f"Found {page_count} pages to crawl, and {item_count} listings")
                     return int(page_count), int(item_count)
-
                 except (KeyError, TypeError, ValueError) as e:
-                    logger.warning(f"Error extracting page_count from JSON: {e}")
-            else:
-                logger.warning("__NEXT_DATA__ script tag not found in the raw HTML string.")
+                    logger.warning(f"Error extracting JSON: {e}")
 
             import time
             time.sleep(5)
             max_retries -= 1
 
-        logger.warning("No listings found with given parameters. Exiting...")
-        print("Failed to get page count. Probably blocked by Cloudflare (405).")
-        return 0,0
+        logger.warning("No listings found with given parameters or blocked.")
+        # 2. Stop the script so we don't lose data.
+        raise Exception("CRITICAL: Failed to count pages 3 times. IP is temporarily blocked.")
+
 
     def extract_listings_from_page(self, page: int) -> list:
         """
@@ -288,7 +284,7 @@ class Crawler:
 
         The crawler starts crawling the website and extracting the data.
         """
-        with concurrent.futures.ThreadPoolExecutor(max_workers=25) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             listings = list(
                 executor.map(self.extract_listings_from_page, range(1, pages + 1))
             )
