@@ -253,7 +253,7 @@ class Crawler:
 
     def to_csv_file(self, filename: str) -> None:
         """
-        Saves the listings to a json file.
+        Saves the listings to a CSV file.
 
         :param filename: The name of the file
         """
@@ -267,7 +267,7 @@ class Crawler:
 
     def to_json_file(self, filename: str) -> None:
         """
-        Saves the listings to a csv file.
+        Saves the listings to a JSON file.
 
         :param filename: The name of the file
         """
