@@ -1,0 +1,8 @@
+name: Run Otodom Scraper
+on:
+  workflow_dispatch:
+jobs:
+  dummy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "This is just a placeholder so the button appears!"
