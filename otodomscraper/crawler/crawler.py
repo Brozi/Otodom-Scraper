@@ -112,7 +112,6 @@ class Crawler:
                     page_count = data["props"]["pageProps"]["tracking"]["listing"]["page_count"]
 
                     logger.info(f"Found {page_count} pages to crawl (from JSON data)")
-                    print(f"---> FOUND {page_count} PAGES TO CRAWL!\n")
                     return int(page_count)
 
                 except (KeyError, TypeError, ValueError) as e:
@@ -289,7 +288,7 @@ class Crawler:
         The crawler starts crawling the website and extracting the data.
         """
         pages = self.count_pages()
-        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=25) as executor:
             listings = list(
                 executor.map(self.extract_listings_from_page, range(1, pages + 1))
             )
