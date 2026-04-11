@@ -306,32 +306,36 @@ class Crawler:
 
     def start(self, pages: int) -> None:
         """
-        Starts the crawler.
-
-        The crawler starts crawling the website and extracting the data.
+        Starts the crawler by fetching one page, reading its apartments,
+        and then moving to the next page.
         """
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-            listings = list(
-                executor.map(self.extract_listings_from_page, range(1, pages + 1))
-            )
-
         existing_links = PropertyService.get_all_links()
 
-        # listing_data is now a JSON dictionary! We generate the link using the slug.
-        valid_listings = []
-        for sublist in listings:
-            for item in sublist:
+        for page in range(1, pages + 1):
+            # 1. Fetch ONE search page
+            page_items = self.extract_listings_from_page(page)
+
+            # 2. Filter the links for just this page
+            valid_listings = []
+            for item in page_items:
                 slug = item.get("slug")
                 if not slug:
                     continue
-                # Otodom URLs look like this: https://www.otodom.pl/pl/oferta/{slug}
                 full_url = f"{Constans.DEFAULT_URL}/pl/oferta/{slug}"
 
                 if full_url not in existing_links:
-                    # Save the generated URL inside the dictionary so we can use it later
                     item["full_url"] = full_url
                     valid_listings.append(item)
 
-        # Change max_workers from 10 down to 3 to avoid instant IP bans
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-            executor.map(self.extract_listing_data, valid_listings)
+            if not valid_listings:
+                print(f"Page {page} had no new listings. Moving to next page...")
+                continue
+
+            # 3. Read the apartments for just this page (This takes several minutes!)
+            # This natural break completely refills the DataDome token bucket for the next search page.
+            print(f"Processing {len(valid_listings)} new apartments from Page {page}...")
+            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+                # We use list() to force the executor to finish before looping to the next search page
+                list(executor.map(self.extract_listing_data, valid_listings))
+
+            print(f"Finished Page {page}. Moving to next page...")
