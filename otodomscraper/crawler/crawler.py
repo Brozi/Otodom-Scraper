@@ -145,6 +145,7 @@ class Crawler:
         while max_retries >= 0:
             page_delay = random.uniform(6.0, 10.0)
             print(f" Delaying page {page} request by {page_delay:.2f} seconds...")
+            time.sleep(page_delay)
 
             try:
                 response = self.session.get(
