@@ -324,5 +324,5 @@ class Crawler:
                     valid_listings.append(item)
 
         # Change max_workers from 10 down to 3 to avoid instant IP bans
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             executor.map(self.extract_listing_data, valid_listings)
