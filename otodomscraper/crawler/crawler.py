@@ -134,26 +134,22 @@ class Crawler:
         params["page"] = page
 
         import time, random
-        max_retries = 3
+        # Change max_retries to 1. If it blocks us, try ONE more time, then abandon the page.
+        max_retries = 1
 
-        while max_retries > 0:
-            # Add a random delay so workers don't hit the server at the exact same millisecond
+        while max_retries >= 0:
             time.sleep(random.uniform(6.0, 10.0))
 
             try:
                 response = self.session.get(
                     url=self.generate_search_url(), params=params, timeout=15)
 
-                # --- WORKER BLOCK DETECTION ---
                 if response.status_code in [403, 405, 429]:
-                    # <--- CHANGE SLEEP TO RANDOMIZED COOLDOWN --->
-                    cooldown = random.uniform(60.0, 120.0)
-                    logger.warning(f"DATADOME BLOCK on page {page}! Sleeping {cooldown:.2f}s...")
-                    time.sleep(cooldown)
-                    # <------------------------------------------>
-
-                    # Refresh the browser session to clear the block
-                    self.session = requests.Session(impersonate="chrome")
+                    # Don't wait 2 minutes. Just wait 15 seconds, refresh the browser, and try once more.
+                    logger.warning(f"DATADOME BLOCK on page {page}! Sleeping 15s before final attempt or skip...")
+                    time.sleep(15)
+                    from curl_cffi import requests as cffi_requests
+                    self.session = cffi_requests.Session(impersonate="chrome")
                     max_retries -= 1
                     continue
                 # ------------------------------
