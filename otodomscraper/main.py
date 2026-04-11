@@ -91,6 +91,7 @@ def main():
     CHUNK_STEP = 300000
 
     all_listings = []
+    chunk_counter = 0  # <--- 1. Initialize the counter here
 
     try:
         for p_type in base_crawler.settings.property_types:
@@ -99,11 +100,8 @@ def main():
             print(f"{'=' * 60}")
 
             base_crawler.settings.property_type = p_type
-
-            # Reset current_min for each property type
             current_min = original_min
 
-            # Loop through the base 300k chunks
             while current_min < original_max:
                 current_max = current_min + CHUNK_STEP
                 if current_max > original_max:
@@ -113,12 +111,19 @@ def main():
 
                 fresh_crawler = Crawler()
 
-                # Pass the 300k chunk into the dynamic splitter.
-                # If it's < 100 pages, it scrapes it immediately.
-                # If it's > 100 pages, it splits it down into 150k chunks automatically!
+                # Process the chunk
                 scrape_dynamic_chunk(fresh_crawler, current_min, current_max, all_listings)
 
                 current_min = current_max + 1
+                chunk_counter += 1  # <--- 2. Increment the counter after a chunk finishes
+
+                # <--- 3. ADD THE COFFEE BREAK LOGIC HERE --->
+                # Every 5 chunks, rest for 2 to 4 minutes
+                if chunk_counter % 5 == 0:
+                    cooldown_minutes = random.uniform(2.0, 4.0)
+                    print(f"\n [COOLDOWN] Completed {chunk_counter} chunks. Resting for {cooldown_minutes:.2f} minutes to reset IP trust score...")
+                    time.sleep(cooldown_minutes * 60)  # Multiply by 60 for seconds
+                # <---------------------------------------->
 
     except KeyboardInterrupt:
         print("\nManually stopped by user!")
