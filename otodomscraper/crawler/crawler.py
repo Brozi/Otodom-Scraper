@@ -135,7 +135,7 @@ class Crawler:
 
         import time, random
         # Change max_retries to 1. If it blocks us, try ONE more time, then abandon the page.
-        max_retries = 1
+        max_retries = 3
 
         while max_retries >= 0:
             time.sleep(random.uniform(6.0, 10.0))
@@ -145,11 +145,13 @@ class Crawler:
                     url=self.generate_search_url(), params=params, timeout=15)
 
                 if response.status_code in [403, 405, 429]:
-                    # Don't wait 2 minutes. Just wait 15 seconds, refresh the browser, and try once more.
-                    logger.warning(f"DATADOME BLOCK on page {page}! Sleeping 15s before final attempt or skip...")
-                    time.sleep(15)
-                    from curl_cffi import requests as cffi_requests
-                    self.session = cffi_requests.Session(impersonate="chrome")
+                    # We now know the penalty box is roughly 10 minutes.
+                    # Let's just wait it out completely so we don't lose ANY pages!
+                    cooldown = random.uniform(600.0, 660.0)  # 10 to 11 minutes
+                    logger.warning(
+                        f"DATADOME BLOCK on page {page}! Sleeping {cooldown / 60:.2f} minutes to clear the penalty box...")
+                    time.sleep(cooldown)
+                    self.session = requests.Session(impersonate="chrome")
                     max_retries -= 1
                     continue
                 # ------------------------------
