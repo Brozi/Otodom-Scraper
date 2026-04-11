@@ -110,10 +110,12 @@ def main():
 
                 print(f"\n---> Starting Base Chunk: {current_min} PLN to {current_max} PLN")
 
+                fresh_crawler = Crawler()
+
                 # Pass the 300k chunk into the dynamic splitter.
                 # If it's < 100 pages, it scrapes it immediately.
                 # If it's > 100 pages, it splits it down into 150k chunks automatically!
-                scrape_dynamic_chunk(base_crawler, current_min, current_max, all_listings)
+                scrape_dynamic_chunk(fresh_crawler, current_min, current_max, all_listings)
 
                 current_min = current_max + 1
 
