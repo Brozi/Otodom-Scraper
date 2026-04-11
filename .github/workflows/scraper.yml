@@ -34,6 +34,7 @@ jobs:
           EOF
 
       - name: Run the Scraper
+        working-directory: ./otodomscraper
         # If your main.py is inside the otodomscraper folder, adjust the path below
         run: python main.py
 
