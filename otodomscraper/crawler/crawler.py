@@ -89,6 +89,11 @@ class Crawler:
         """
         max_retries = 3
         while max_retries > 0:
+            delay = random.uniform(3.0, 6.0)
+            print(f"Delaying page count request by {delay:.2f} seconds...")
+            import time
+            time.sleep(delay)
+
             logger.info(f"Counting pages to crawl, try: {4 - max_retries}/3")
             search_url = self.generate_search_url()
             response = self.session.get(url=search_url, params=self.params, timeout=20)
@@ -138,7 +143,8 @@ class Crawler:
         max_retries = 3
 
         while max_retries >= 0:
-            time.sleep(random.uniform(6.0, 10.0))
+            page_delay = random.uniform(6.0, 10.0)
+            print(f" Delaying page {page} request by {page_delay:.2f} seconds...")
 
             try:
                 response = self.session.get(
