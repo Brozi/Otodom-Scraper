@@ -215,25 +215,34 @@ class Crawler:
         try:
             soup = self.try_get_listing_page(url=property_.link)
         except DataExtractionError as e:
-            logger.exception(
-                f"Failed to extract data from {property_.link}, Error: {e}"
-            )
+            logger.exception(f"Failed to extract HTML from {property_.link}, Error: {e}")
             return
-        property_.extract_data(soup)
-        if property_.offered_by == OfferedBy.ESTATE_AGENCY:
-            agency = AgencyDocument()
-            agency.extract_data(soup)
-            agency_doc = AgencyService.get_by_otodom_id(agency.otodom_id)
 
-            if agency_doc is None:
-                agency_doc = AgencyService.put(agency)
-            property_.estate_agency = agency_doc.to_dbref()
-            listing.agency = agency_doc
-        if PropertyService.get_by_otodom_id(property_.otodom_id) is None:
-            logger.info(f"Adding new property {property_.link} to database")
-            property_ = PropertyService.put(property_)
-            listing.property_ = property_
-            self.listings.append(listing)
+        # --- NEW SAFETY NET START ---
+        try:
+            property_.extract_data(soup)
+
+            if property_.offered_by == OfferedBy.ESTATE_AGENCY:
+                agency = AgencyDocument()
+                agency.extract_data(soup)
+                agency_doc = AgencyService.get_by_otodom_id(agency.otodom_id)
+
+                if agency_doc is None:
+                    agency_doc = AgencyService.put(agency)
+                property_.estate_agency = agency_doc.to_dbref()
+                listing.agency = agency_doc
+
+            if PropertyService.get_by_otodom_id(property_.otodom_id) is None:
+                logger.info(f" Saved to Database: {property_.link}")
+                property_ = PropertyService.put(property_)
+                listing.property_ = property_
+                self.listings.append(listing)
+
+        except Exception as e:
+            # If the apartment has weird JSON (like a developer project), just skip it!
+            print(f"Failed to parse data for {property_.link} (Error: {e}). Skipping apartment.")
+            return
+        # --- NEW SAFETY NET END ---
 
     def try_get_listing_page(self, url: str) -> BeautifulSoup:
         import time
