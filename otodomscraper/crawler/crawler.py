@@ -4,7 +4,7 @@ import logging
 import json
 import re
 
-import requests
+from curl_cffi import requests
 from bs4 import BeautifulSoup
 from bs4 import ResultSet
 from common import Constans
@@ -21,17 +21,17 @@ from settings import Settings
 logger = logging.getLogger(__name__)
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-    "Accept-Language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Connection": "keep-alive",
-    "Upgrade-Insecure-Requests": "1",
-    "Sec-Fetch-Dest": "document",
-    "Sec-Fetch-Mode": "navigate",
-    "Sec-Fetch-Site": "none",
-    "Sec-Fetch-User": "?1",
-    "Cache-Control": "max-age=0",
+    # "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    # "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    # "Accept-Language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
+    # "Accept-Encoding": "gzip, deflate, br",
+    # "Connection": "keep-alive",
+    # "Upgrade-Insecure-session": "1",
+    # "Sec-Fetch-Dest": "document",
+    # "Sec-Fetch-Mode": "navigate",
+    # "Sec-Fetch-Site": "none",
+    # "Sec-Fetch-User": "?1",
+    # "Cache-Control": "max-age=0",
 }
 
 
@@ -47,6 +47,7 @@ class Crawler:
         """
         Initialize the crawler.
         """
+        self.session = requests.Session(impersonate="chrome")
         self.settings: Settings = Settings()
         self.params: dict = self.generate_params()
         self.listings: list[Listing] = []
@@ -81,48 +82,47 @@ class Crawler:
             "priceMax": self.settings.price_max,
         }
 
-    def count_pages(self) -> int:
+    def count_pages(self) -> tuple[int, int] | None:
         """
         Count the number of pages to crawl using Regex to bypass HTML parser limits.
         """
         max_retries = 3
         while max_retries > 0:
             logger.info(f"Counting pages to crawl, try: {4 - max_retries}/3")
-
             search_url = self.generate_search_url()
-            response = requests.get(
-                url=search_url, params=self.params, headers=HEADERS, timeout=20
-            )
+            response = self.session.get(url=search_url, params=self.params, timeout=20)
             html = response.text
             print(f"Status: {response.status_code}, Length: {len(html)}")
-            # --- DEBUG: SAVE RAW HTML ---
+            if response.status_code in [403, 405, 429]:
+                print("\nDATADOME BLOCK DETECTED! Sleeping 30s to cool down... ")
+                import time
+                time.sleep(30)
+                from curl_cffi import requests as cffi_requests
+                self.session = cffi_requests.Session(impersonate="chrome")  # Get fresh browser
+                max_retries -= 1
+                continue
+
             with open("debug_page.html", "w", encoding="utf-8") as f:
                 f.write(html)
-            print("Saved raw HTML to 'debug_page.html'")
-            # ----------------------------
 
-            # This regex perfectly matches your exact tag and ignores the extra attributes
-            match = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', response.text, re.DOTALL)
-
+            match = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', html, re.DOTALL)
             if match:
                 try:
-                    json_text = match.group(1)
-                    data = json.loads(json_text)
-
+                    data = json.loads(match.group(1))
                     page_count = data["props"]["pageProps"]["tracking"]["listing"]["page_count"]
-
-                    logger.info(f"Found {page_count} pages to crawl (from JSON data)")
-                    return int(page_count)
-
+                    listing_data = data["props"]["pageProps"]["tracking"]["listing"]
+                    item_count = listing_data.get("item_count", 0)
+                    return int(page_count), int(item_count)
                 except (KeyError, TypeError, ValueError) as e:
-                    logger.warning(f"Error extracting page_count from JSON: {e}")
-            else:
-                logger.warning("__NEXT_DATA__ script tag not found in the raw HTML string.")
+                    logger.warning(f"Error extracting JSON: {e}")
 
+            import time
+            time.sleep(5)
             max_retries -= 1
 
-        logger.warning("No listings found with given parameters. Exiting...")
-        exit(1)
+        logger.warning("No listings found with given parameters or blocked.")
+        # 2. Stop the script so we don't lose data.
+        raise Exception("CRITICAL: Failed to count pages 3 times. IP is temporarily blocked.")
 
     def extract_listings_from_page(self, page: int) -> list:
         """
@@ -131,38 +131,54 @@ class Crawler:
         params = self.params.copy()
         params["page"] = page
 
-        # Add a delay so you don't get blocked again!
         import time, random
-        time.sleep(random.uniform(1.5, 3.5))
+        max_retries = 3
 
-        response = requests.get(
-            url=self.generate_search_url(), params=params, headers=HEADERS, timeout=15
-        )
-        logger.info(f"Extracting listings from page {page}")
+        while max_retries > 0:
+            # Add a random delay so workers don't hit the server at the exact same millisecond
+            time.sleep(random.uniform(1.5, 4.0))
 
-        html = response.text
-        marker = 'id="__NEXT_DATA__"'
-
-        if marker in html:
             try:
-                tag_start = html.find(marker)
-                json_start = html.find('>', tag_start) + 1
-                json_end = html.find('</script>', json_start)
+                response = self.session.get(
+                    url=self.generate_search_url(), params=params, timeout=15)
 
-                json_text = html[json_start:json_end].strip()
-                data = json.loads(json_text)
+                # --- WORKER BLOCK DETECTION ---
+                if response.status_code in [403, 405, 429]:
+                    logger.warning(f"DATADOME BLOCK on page {page}! Sleeping 35s...")
+                    time.sleep(35)
+                    # Refresh the browser session to clear the block
+                    from curl_cffi import requests as cffi_requests
+                    self.session = cffi_requests.Session(impersonate="chrome")
+                    max_retries -= 1
+                    continue
+                # ------------------------------
 
-                # Navigate to the items list based on standard Next.js structure
-                # Note: otodom usually puts it here:
-                items = data["props"]["pageProps"]["data"]["searchAds"]["items"]
-                return items
+                logger.info(f"Extracting listings from page {page}")
+                html = response.text
+                marker = 'id="__NEXT_DATA__"'
+
+                if marker in html:
+                    tag_start = html.find(marker)
+                    json_start = html.find('>', tag_start) + 1
+                    json_end = html.find('</script>', json_start)
+
+                    json_text = html[json_start:json_end].strip()
+                    data = json.loads(json_text)
+
+                    items = data["props"]["pageProps"]["data"]["searchAds"]["items"]
+                    return items
+                else:
+                    logger.warning(f"__NEXT_DATA__ not found on page {page}. Status Code: {response.status_code}")
+                    time.sleep(5)
+                    max_retries -= 1
 
             except Exception as e:
                 logger.warning(f"Error extracting items on page {page}: {e}")
-                return []
-        else:
-            logger.warning(f"__NEXT_DATA__ not found on page {page}.")
-            return []
+                time.sleep(5)
+                max_retries -= 1
+
+        logger.error(f"CRITICAL: Failed to extract page {page} after 3 retries. Skipping page.")
+        return []
 
     def extract_listing_data(self, listing_data: ResultSet) -> None:
         """
@@ -225,16 +241,12 @@ class Crawler:
         max_retries = 3
         while max_retries > 0:
             # 1. Add a random delay before opening the apartment page
-            time.sleep(random.uniform(1.0, 2.5))
+            time.sleep(random.uniform(1.0,  2.5))
 
-            # 2. Add impersonate="chrome" if you are using curl_cffi!
-            # (If you are using standard requests, just remove impersonate="chrome")
             try:
-                response = requests.get(
+                response = self.session.get(
                     url=url,
-                    headers=HEADERS,
-                    timeout=15
-                )
+                    timeout=15)
 
                 soup = BeautifulSoup(response.content, "html.parser")
 
@@ -255,7 +267,7 @@ class Crawler:
 
     def to_csv_file(self, filename: str) -> None:
         """
-        Saves the listings to a json file.
+        Saves the listings to a CSV file.
 
         :param filename: The name of the file
         """
@@ -269,7 +281,7 @@ class Crawler:
 
     def to_json_file(self, filename: str) -> None:
         """
-        Saves the listings to a csv file.
+        Saves the listings to a JSON file.
 
         :param filename: The name of the file
         """
@@ -283,16 +295,15 @@ class Crawler:
                 indent=4,
             )
 
-    def start(self) -> None:
+    def start(self, pages: int) -> None:
         """
         Starts the crawler.
 
         The crawler starts crawling the website and extracting the data.
         """
-        pages = self.count_pages()
-        with concurrent.futures.ThreadPoolExecutor(max_workers=25) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             listings = list(
-                executor.map(self.extract_listings_from_page, range(1, pages+1))
+                executor.map(self.extract_listings_from_page, range(1, pages + 1))
             )
 
         existing_links = PropertyService.get_all_links()

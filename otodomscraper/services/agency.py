@@ -1,5 +1,5 @@
 import logging
-
+from mongoengine.errors import NotUniqueError
 from models import AgencyDocument
 
 logger = logging.getLogger(__name__)
@@ -28,16 +28,16 @@ class AgencyService:
         """
         return AgencyDocument.objects(otodom_id=otodom_id).first()
 
-    @classmethod
-    def put(cls, agency: AgencyDocument) -> AgencyDocument:
+    @staticmethod
+    def put(agency):
         try:
-            agency.validate()
             agency = agency.save()
             return agency
+        except NotUniqueError:
+            # The agency is already in the database!
+            # We just catch the error quietly and move on.
+            logger.debug(f"Agency {agency.name} already exists. Skipping.")
+            return None
         except Exception as e:
-            logging.exception(
-                f"""Failed to insert agency {agency.name} to database
-            Error: {e}
-            Agency data: {agency.to_mongo().to_dict()}
-            """
-            )
+            logger.error(f"Failed to insert agency {agency.name} to database: {e}")
+            return None
