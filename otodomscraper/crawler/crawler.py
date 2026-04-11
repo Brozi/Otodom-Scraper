@@ -89,7 +89,7 @@ class Crawler:
         """
         max_retries = 3
         while max_retries > 0:
-            delay = random.uniform(3.0, 6.0)
+            delay = random.uniform(6.0, 10.0)
             print(f"Delaying page count request by {delay:.2f} seconds...")
             import time
             time.sleep(delay)
@@ -100,8 +100,8 @@ class Crawler:
             html = response.text
             print(f"Status: {response.status_code}, Length: {len(html)}")
             if response.status_code in [403, 405, 429]:
-                cooldown = random.uniform(60.0, 120.0)
-                print(f"\nDATADOME BLOCK DETECTED! Sleeping {cooldown:.2f}s to cool down... ")
+                cooldown = random.uniform(600.0, 660.0)
+                print(f"\nDATADOME BLOCK DETECTED! Sleeping {cooldown/60:.2f}s to clear the pentalty box... ")
                 import time
                 time.sleep(cooldown)
                 # <------------------------------------------>
