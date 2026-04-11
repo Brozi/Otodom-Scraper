@@ -46,7 +46,8 @@ jobs:
         with:
           name: scraper-results
           path: |
-            *.csv
-            scraper_log_*.txt
-            debug_page.html
+            otodomscraper/*.csv
+            otodomscraper/*.xlsx
+            otodomscraper/scraper_log_*.txt
+            otodomscraper/debug_page.html
           retention-days: 7
