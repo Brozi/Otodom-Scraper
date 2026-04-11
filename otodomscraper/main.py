@@ -15,6 +15,7 @@ class TerminalLogger:
     def write(self, message):
         # 1. Print to the terminal normally (keeps red colors intact!)
         self.terminal.write(message)
+        self.terminal.flush()
 
         # 2. Save a clean, color-free version to the text file
         clean_msg = self.ansi_escape.sub('', message)
