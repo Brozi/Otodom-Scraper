@@ -138,7 +138,7 @@ class Crawler:
 
         while max_retries > 0:
             # Add a random delay so workers don't hit the server at the exact same millisecond
-            time.sleep(random.uniform(1.5, 4.0))
+            time.sleep(random.uniform(6.0, 10.0))
 
             try:
                 response = self.session.get(
