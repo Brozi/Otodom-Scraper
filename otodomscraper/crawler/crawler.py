@@ -146,11 +146,14 @@ class Crawler:
 
                 # --- WORKER BLOCK DETECTION ---
                 if response.status_code in [403, 405, 429]:
-                    logger.warning(f"DATADOME BLOCK on page {page}! Sleeping 35s...")
-                    time.sleep(35)
+                    # <--- CHANGE SLEEP TO RANDOMIZED COOLDOWN --->
+                    cooldown = random.uniform(60.0, 120.0)
+                    logger.warning(f"DATADOME BLOCK on page {page}! Sleeping {cooldown:.2f}s...")
+                    time.sleep(cooldown)
+                    # <------------------------------------------>
+
                     # Refresh the browser session to clear the block
-                    from curl_cffi import requests as cffi_requests
-                    self.session = cffi_requests.Session(impersonate="chrome")
+                    self.session = requests.Session(impersonate="chrome")
                     max_retries -= 1
                     continue
                 # ------------------------------
@@ -202,9 +205,7 @@ class Crawler:
         # Read directly from the JSON dictionary we passed!
         property_.link = listing_data["full_url"]
         property_.is_promoted = listing_data.get("isPromoted", False)
-        # --- ADD THIS PRINT ---
         print(f" Found apartment! Visiting: {property_.link}")
-        # ----------------------
 
         try:
             soup = self.try_get_listing_page(url=property_.link)
@@ -218,6 +219,7 @@ class Crawler:
             agency = AgencyDocument()
             agency.extract_data(soup)
             agency_doc = AgencyService.get_by_otodom_id(agency.otodom_id)
+
             if agency_doc is None:
                 agency_doc = AgencyService.put(agency)
             property_.estate_agency = agency_doc.to_dbref()
