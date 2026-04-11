@@ -101,7 +101,7 @@ class Crawler:
             print(f"Status: {response.status_code}, Length: {len(html)}")
             if response.status_code in [403, 405, 429]:
                 cooldown = random.uniform(600.0, 660.0)
-                print(f"\nDATADOME BLOCK DETECTED! Sleeping {cooldown/60:.2f}s to clear the pentalty box... ")
+                print(f"\nDATADOME BLOCK DETECTED! Sleeping {cooldown/60:.2f}min to clear the pentalty box... ")
                 import time
                 time.sleep(cooldown)
                 # <------------------------------------------>
