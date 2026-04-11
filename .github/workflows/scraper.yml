@@ -36,6 +36,7 @@ jobs:
 
       - name: Run the Scraper
         working-directory: ./otodomscraper
+        timeout-minutes: 355
         # If your main.py is inside the otodomscraper folder, adjust the path below
         run: python main.py
 
