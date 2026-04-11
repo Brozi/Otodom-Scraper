@@ -3,6 +3,7 @@ import csv
 import logging
 import json
 import re
+import random
 
 from curl_cffi import requests
 from bs4 import BeautifulSoup
@@ -94,11 +95,12 @@ class Crawler:
             html = response.text
             print(f"Status: {response.status_code}, Length: {len(html)}")
             if response.status_code in [403, 405, 429]:
-                print("\nDATADOME BLOCK DETECTED! Sleeping 30s to cool down... ")
+                cooldown = random.uniform(60.0, 120.0)
+                print(f"\nDATADOME BLOCK DETECTED! Sleeping {cooldown:.2f}s to cool down... ")
                 import time
-                time.sleep(30)
-                from curl_cffi import requests as cffi_requests
-                self.session = cffi_requests.Session(impersonate="chrome")  # Get fresh browser
+                time.sleep(cooldown)
+                # <------------------------------------------>
+                self.session = requests.Session(impersonate="chrome")  # Get fresh browser
                 max_retries -= 1
                 continue
 
