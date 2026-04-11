@@ -27,6 +27,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Create settings.json securely
+        working-directory: ./otodomscraper
         # This takes your GitHub Secret and creates the file on the server
         run: |
           cat << 'EOF' > settings.json
