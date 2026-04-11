@@ -81,9 +81,9 @@ def scrape_dynamic_chunk(crawler, current_min, current_max, master_list):
             master_list.extend(crawler.listings)
             crawler.listings = []
 
-        delay = random.uniform(20.00, 30.00)
-        time.sleep(delay)
-        print(f"Waiting {delay} seconds before the next chunk...")
+        print(f"Waiting ~30 seconds before the next chunk...")
+        time.sleep(random.uniform(20.00, 30.00))
+
 
 
 def main():
