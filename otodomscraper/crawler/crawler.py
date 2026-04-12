@@ -290,8 +290,16 @@ class Crawler:
 
         :param filename: The name of the file
         """
+        valid_listings = [listing for listing in self.listings if listing.property_ is not None]
+
+        if not valid_listings:
+            print("No new valid listings to save to CSV in this chunk.")
+            return
+
+        # UPDATE THIS: Use the filtered valid_listings instead of self.listings
+
         logger.info(f"Saving listings to {filename}. Format: csv")
-        data = [listing.to_dict() for listing in self.listings]
+        data = [listing.to_dict() for listing in valid_listings]
 
         with open(filename, "w", newline="", encoding="utf-8") as file:
             dict_writer = csv.DictWriter(file, Constans.CSV_KEYS)
