@@ -5,19 +5,16 @@ import re
 import sys
 import datetime
 
+
 class TerminalLogger:
     def __init__(self, filename, stream):
         self.terminal = stream
         self.log_file = open(filename, "a", encoding="utf-8")
-        # This removes the ugly color codes from the text file
         self.ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
     def write(self, message):
-        # 1. Print to the terminal normally (keeps red colors intact!)
         self.terminal.write(message)
         self.terminal.flush()
-
-        # 2. Save a clean, color-free version to the text file
         clean_msg = self.ansi_escape.sub('', message)
         self.log_file.write(clean_msg)
         self.log_file.flush()
@@ -27,10 +24,7 @@ class TerminalLogger:
         self.log_file.flush()
 
 
-# Generate the log file name
 log_filename = datetime.datetime.now().strftime("scraper_log_%Y-%m-%d_%H-%M-%S.txt")
-
-# Intercept BOTH standard prints and error/warning messages
 sys.stdout = TerminalLogger(log_filename, sys.stdout)
 sys.stderr = TerminalLogger(log_filename, sys.stderr)
 
@@ -58,25 +52,20 @@ def scrape_dynamic_chunk(crawler, current_min, current_max, master_list):
 
     # 4. Recursive case: Over 100 pages (Split in half)
     if pages > page_limit:
-        print(f"Chunk {current_min} - {current_max} has {pages} pages (>{page_limit} limit), {total_listings} listings. Splitting in half...")
+        print(
+            f"Chunk {current_min} - {current_max} has {pages} pages (>{page_limit} limit), {total_listings} listings. Splitting in half...")
         mid_price = (current_min + current_max) // 2
 
-        # Run first half
         scrape_dynamic_chunk(crawler, current_min, mid_price, master_list)
-
-        time.sleep(random.uniform(3.0, 5.0))  # Small delay between splits
-
-        # Run second half
+        time.sleep(random.uniform(3.0, 5.0))
         scrape_dynamic_chunk(crawler, mid_price + 1, current_max, master_list)
 
     # 5. Base case: Safe to scrape (1 to 100 pages)
     else:
         print(f"Scraping SAFE chunk: {current_min} - {current_max} PLN ({pages} pages, {total_listings} listings.)")
 
-        # Pass the pre-counted pages directly to start()!
         crawler.start(pages)
 
-        # Store results and clear memory
         if hasattr(crawler, 'listings'):
             master_list.extend(crawler.listings)
             crawler.listings = []
@@ -85,47 +74,28 @@ def scrape_dynamic_chunk(crawler, current_min, current_max, master_list):
         time.sleep(random.uniform(20.00, 30.00))
 
 
-
 def main():
     base_crawler = Crawler()
-    original_min = base_crawler.settings.price_min
-    original_max = base_crawler.settings.price_max
-    CHUNK_STEP = 300000
+
+    # 1. Read the EXACT range assigned to this specific GitHub Action runner
+    # The workflow file already injected this runner's specific bounds into settings.json
+    target_min = base_crawler.settings.price_min
+    target_max = base_crawler.settings.price_max
 
     all_listings = []
-    chunk_counter = 0  # <--- 1. Initialize the counter here
 
     try:
         for p_type in base_crawler.settings.property_types:
             print(f"\n{'=' * 60}")
-            print(f"Starting property type: {p_type.value.upper()}")
+            print(f"Starting property type: {p_type.value.upper()} for range {target_min} - {target_max} PLN")
             print(f"{'=' * 60}")
 
-            base_crawler.settings.property_type = p_type
-            current_min = original_min
+            # 2. Create a fresh crawler and explicitly assign the correct property type
+            crawler = Crawler()
+            crawler.settings.property_type = p_type
 
-            while current_min < original_max:
-                current_max = current_min + CHUNK_STEP
-                if current_max > original_max:
-                    current_max = original_max
-
-                print(f"\n---> Starting Base Chunk: {current_min} PLN to {current_max} PLN")
-
-                fresh_crawler = Crawler()
-
-                # Process the chunk
-                scrape_dynamic_chunk(fresh_crawler, current_min, current_max, all_listings)
-
-                current_min = current_max + 1
-                chunk_counter += 1  # <--- 2. Increment the counter after a chunk finishes
-
-                # <--- 3. ADD THE COFFEE BREAK LOGIC HERE --->
-                # Every 5 chunks, rest for 2 to 4 minutes
-                if chunk_counter % 5 == 0:
-                    cooldown_minutes = random.uniform(2.0, 4.0)
-                    print(f"\n [COOLDOWN] Completed {chunk_counter} chunks. Resting for {cooldown_minutes:.2f} minutes to reset IP trust score...")
-                    time.sleep(cooldown_minutes * 60)  # Multiply by 60 for seconds
-                # <---------------------------------------->
+            # 3. Scrape the exact range assigned to this runner
+            scrape_dynamic_chunk(crawler, target_min, target_max, all_listings)
 
     except KeyboardInterrupt:
         print("\nManually stopped by user!")
@@ -133,7 +103,7 @@ def main():
         print(f"\nBLOCK DETECTED OR CRITICAL ERROR: {e}")
 
     finally:
-        print(f"\nScript finished! Gathered {len(all_listings)} total listings.")
+        print(f"\nScript finished! Gathered {len(all_listings)} total listings in this chunk.")
         print("Saving gathered data to CSV...")
 
         if hasattr(base_crawler, 'listings'):
