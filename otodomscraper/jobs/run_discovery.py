@@ -24,6 +24,7 @@ def export_to_github_actions(ranges: list):
     print(f"\nFinal Matrix JSON: {matrix_json}")
 
     if "GITHUB_OUTPUT" in os.environ:
+        print("Generated Matrix Keys:", [list(item.keys()) for item in ranges])
         with open(os.environ["GITHUB_OUTPUT"], "a") as f:
             f.write(f"matrix={matrix_json}\n")
 
