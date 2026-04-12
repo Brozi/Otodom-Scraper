@@ -104,7 +104,6 @@ class Crawler:
                 print(f"\nDATADOME BLOCK DETECTED! Sleeping {cooldown/60:.2f}min to clear the pentalty box... ")
                 import time
                 time.sleep(cooldown)
-                # <------------------------------------------>
                 self.session = requests.Session(impersonate="chrome")  # Get fresh browser
                 max_retries -= 1
                 continue
@@ -162,7 +161,6 @@ class Crawler:
                     self.session = requests.Session(impersonate="chrome")
                     max_retries -= 1
                     continue
-                # ------------------------------
 
                 logger.info(f"Extracting listings from page {page}")
                 html = response.text
@@ -205,6 +203,8 @@ class Crawler:
 
         :param listing_data: The HTML part of the listing at the search page.
         """
+        import time
+        time.sleep(random.uniform(1.5, 4.0))
         listing = Listing()
         property_ = PropertyDocument()
 
@@ -357,3 +357,7 @@ class Crawler:
                 list(executor.map(self.extract_listing_data, valid_listings))
 
             print(f"Finished Page {page}. Moving to next page...")
+            delay = random.uniform(8.0, 15.0)
+            print(f"Sleeping {delay:.2f}s before loading the next search page...")
+            import time
+            time.sleep(delay)
