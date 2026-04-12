@@ -1,6 +1,7 @@
 import sys
 import os
 import json
+import uuid
 
 # Add the parent directory to the path so it can import your modules
 #sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -25,9 +26,12 @@ def export_to_github_actions(ranges: list):
     print("Generated Matrix Keys:", [list(item.keys()) for item in ranges])
 
     if "GITHUB_OUTPUT" in os.environ:
-
+        # FIXED: Use a unique EOF delimiter for safe JSON injection
+        delimiter = f"EOF-{uuid.uuid4()}"
         with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-            f.write(f"matrix={matrix_json}\n")
+            f.write(f"matrix<<{delimiter}\n")
+            f.write(f"{matrix_json}\n")
+            f.write(f"{delimiter}\n")
 
 
 def main():

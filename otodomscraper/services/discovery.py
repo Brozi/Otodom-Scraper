@@ -14,8 +14,8 @@ class RangeDiscoverer:
         :param max_listings_per_chunk: The safe limit before we split the range (Otodom max is ~3000).
         :param global_max: The price cap before we just dump everything into a "14m+" bucket.
         """
-        self.min_range_name = "low"
-        self.max_range_name = "high"
+        self.min_range_name = "min"
+        self.max_range_name = "max"
         self.max_listings_per_chunk = max_listings_per_chunk
         self.global_max = global_max
         self.discovered_ranges = []
