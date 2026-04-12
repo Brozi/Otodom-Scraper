@@ -23,7 +23,8 @@ from services.discovery import RangeDiscoverer
 def export_to_github_actions(ranges: list):
     # Convert [{"min": 0, "max": 10000}, ...] into ["0-10000", ...]
     # This completely bypasses the GitHub Actions JSON secret scanner
-    flattened_ranges = [f"{r['min']}-{r['max']}" for r in ranges]
+    range = RangeDiscoverer(max_listings_per_chunk=2800)
+    flattened_ranges = [f"{r[range.min_range_name]}-{r[range.max_range_name]}" for r in ranges]
     matrix_json = json.dumps(flattened_ranges)
 
     print(f"\nFlattened Matrix: {flattened_ranges}")
