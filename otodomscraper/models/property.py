@@ -18,6 +18,7 @@ from mongoengine import Document
 from mongoengine import EmbeddedDocumentField
 from mongoengine import EnumField
 from mongoengine import FloatField
+from mongoengine import ListField
 from mongoengine import IntField
 from mongoengine import NULLIFY
 from mongoengine import ReferenceField
@@ -44,6 +45,7 @@ class PropertyDocument(Document):
     extras = StringField()
     security_types = StringField()
     rent = IntField()
+    Construction_status = ListField(StringField())
     property_type = EnumField(PropertyType, required=True)
     market_type = EnumField(MarketType, required=True)
     auction_type = EnumField(AuctionType, required=True)

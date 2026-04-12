@@ -48,7 +48,7 @@ class Crawler:
         """
         Initialize the crawler.
         """
-        self.session = requests.Session(impersonate="chrome")
+        self.session = requests.Session(impersonate="chrome120")
         self.settings: Settings = Settings()
         self.params: dict = self.generate_params()
         self.listings: list[Listing] = []
@@ -104,8 +104,7 @@ class Crawler:
                 print(f"\nDATADOME BLOCK DETECTED! Sleeping {cooldown/60:.2f}min to clear the pentalty box... ")
                 import time
                 time.sleep(cooldown)
-                # <------------------------------------------>
-                self.session = requests.Session(impersonate="chrome")  # Get fresh browser
+                self.session = requests.Session(impersonate="chrome120")  # Get fresh browser
                 max_retries -= 1
                 continue
 
@@ -118,8 +117,9 @@ class Crawler:
                     data = json.loads(match.group(1))
                     page_count = data["props"]["pageProps"]["tracking"]["listing"]["page_count"]
                     listing_data = data["props"]["pageProps"]["tracking"]["listing"]
-                    item_count = listing_data.get("item_count", 0)
+                    item_count = listing_data.get("result_count", 0)
                     return int(page_count), int(item_count)
+
                 except (KeyError, TypeError, ValueError) as e:
                     logger.warning(f"Error extracting JSON: {e}")
 
@@ -158,10 +158,9 @@ class Crawler:
                     logger.warning(
                         f"DATADOME BLOCK on page {page}! Sleeping {cooldown / 60:.2f} minutes to clear the penalty box...")
                     time.sleep(cooldown)
-                    self.session = requests.Session(impersonate="chrome")
+                    self.session = requests.Session(impersonate="chrome120")
                     max_retries -= 1
                     continue
-                # ------------------------------
 
                 logger.info(f"Extracting listings from page {page}")
                 html = response.text
@@ -204,6 +203,8 @@ class Crawler:
 
         :param listing_data: The HTML part of the listing at the search page.
         """
+        import time
+        time.sleep(random.uniform(1.5, 4.0))
         listing = Listing()
         property_ = PropertyDocument()
 
@@ -289,8 +290,16 @@ class Crawler:
 
         :param filename: The name of the file
         """
+        valid_listings = [listing for listing in self.listings if listing.property_ is not None]
+
+        if not valid_listings:
+            print("No new valid listings to save to CSV in this chunk.")
+            return
+
+        # UPDATE THIS: Use the filtered valid_listings instead of self.listings
+
         logger.info(f"Saving listings to {filename}. Format: csv")
-        data = [listing.to_dict() for listing in self.listings]
+        data = [listing.to_dict() for listing in valid_listings]
 
         with open(filename, "w", newline="", encoding="utf-8") as file:
             dict_writer = csv.DictWriter(file, Constans.CSV_KEYS)
@@ -321,6 +330,8 @@ class Crawler:
         existing_links = PropertyService.get_all_links()
 
         for page in range(1, pages + 1):
+            if page % 15 == 0:
+                self.rotate_session()
             # 1. Fetch ONE search page
             page_items = self.extract_listings_from_page(page)
 
@@ -348,3 +359,25 @@ class Crawler:
                 list(executor.map(self.extract_listing_data, valid_listings))
 
             print(f"Finished Page {page}. Moving to next page...")
+            delay = random.uniform(8.0, 15.0)
+            print(f"Sleeping {delay:.2f}s before loading the next search page...")
+            import time
+            time.sleep(delay)
+
+    def rotate_session(self):
+        """Drops the current session cookies and generates a fresh browser fingerprint."""
+        print("\n[ANTI-BOT] Rotating main crawler session to clear velocity history...")
+
+        # Close the existing session
+        if hasattr(self, 'session') and self.session:
+            self.session.close()
+
+        # Take a long breather to reset the IP trust score
+        cooldown = random.uniform(35.0, 60.0)
+        print(f"[ANTI-BOT] IP cooling down for {cooldown:.2f} seconds...")
+        import time
+        time.sleep(cooldown)
+
+        # Start a brand new session with a modern browser profile
+        self.session = requests.Session(impersonate="chrome120")
+        print("[ANTI-BOT] New session acquired. Resuming scrape...\n")

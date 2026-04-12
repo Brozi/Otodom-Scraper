@@ -35,8 +35,7 @@ jobs:
       - name: Run Discovery Script
         id: set-matrix
         working-directory: ./otodomscraper
-        # Assuming you placed the discovery runner in a jobs/ folder as discussed
-        run: python jobs/run_discovery.py
+        run: python -u jobs/run_discovery.py
 
 
   # ==========================================
@@ -76,8 +75,10 @@ jobs:
           python -c "
           import json
           with open('settings.json', 'r') as f: data = json.load(f)
-          data['price_min'] = ${{ matrix.range.min }}
-          data['price_max'] = ${{ matrix.range.max }}
+          # Split the 'min-max' string back into variables
+          min_val, max_val = '${{ matrix.range }}'.split('-')
+          data['crawler']['price']['min'] = int(min_val)
+          data['crawler']['price']['max'] = int(max_val)
           with open('settings.json', 'w') as f: json.dump(data, f, indent=4)
           "
 
@@ -91,7 +92,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           # Name the artifact dynamically so each chunk has its own folder
-          name: scraper-results-${{ matrix.range.min }}-${{ matrix.range.max }}
+          name: scraper-results-${{ matrix.range }}
           path: |
             otodomscraper/*.csv
             otodomscraper/*.xlsx
@@ -116,8 +117,8 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Install Pandas
-        run: pip install pandas openpyxl
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
       - name: Download all Chunk Artifacts
         uses: actions/download-artifact@v4

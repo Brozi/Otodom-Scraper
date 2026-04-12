@@ -53,6 +53,8 @@ class Settings:
                 crawler_settings = settings["crawler"]
                 self.base_url = Constans.DEFAULT_URL
                 self.price_min, self.price_max = self.__init_price(crawler_settings)
+                # Get the chunk limit from settings, default to 2800 if not found
+                self.max_listings_per_chunk = crawler_settings.get("max_listings_per_chunk", 2800)
                 self.province = self.__init_province(crawler_settings)
                 self.city = self.__init_city(crawler_settings)
                 self.district = self.__init_district(crawler_settings)

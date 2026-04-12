@@ -44,7 +44,7 @@ class PropertyService:
         return {property_.link for property_ in properties}
 
     @classmethod
-    def put(cls, property_: PropertyDocument) -> PropertyDocument:
+    def put(cls, property_: PropertyDocument) -> PropertyDocument | None:
         """
         Inserts the property into the database.
         """
@@ -53,12 +53,15 @@ class PropertyService:
             property_ = property_.save()
             return property_
         except Exception as e:
-            logging.exception(
-                f"""Failed to insert property {property_.link} to database
-            Error: {e}
-            Property data: {property_.to_mongo().to_dict()}
-            """
-            )
+            error_msg = str(e)
+            # Catch the specific duplicate key error gracefully
+            if "E11000 duplicate key error" in error_msg or "NotUniqueError" in error_msg:
+                logger.warning(
+                    f"Duplicate property ignored (otodom_id: {property_.otodom_id}). Link was new, but ID already exists.")
+                return None
+            else:
+                logger.error(f"Failed to insert property {property_.otodom_id}. Error: {error_msg}")
+                return None
 
     @classmethod
     def to_csv_file(cls, filename: str, include_agencies: bool = False) -> None:
