@@ -20,11 +20,24 @@ def export_to_github_actions(ranges: list):
 
 def main():
     crawler = Crawler()
-    discoverer = RangeDiscoverer()
 
-    discoverer.discover(crawler, 0, discoverer.global_max)
+    # 1. Read limits and chunk configurations directly from settings
+    global_min = crawler.settings.price_min
+    global_max = crawler.settings.price_max
+
+    # Use getattr() just in case an older settings.json doesn't have the key yet
+    chunk_limit = getattr(crawler.settings, "max_listings_per_chunk", 2800)
+
+    print(f"Loaded global limits: {global_min} - {global_max} PLN")
+    print(f"Configured Max Listings Per Chunk: {chunk_limit}")
+
+    # 2. Pass them to the Discoverer
+    discoverer = RangeDiscoverer(max_listings_per_chunk=chunk_limit, global_max=global_max)
+
+    # 3. Discover
+    discoverer.discover(crawler, global_min, global_max)
+
     final_ranges = discoverer.get_final_matrix()
-
     export_to_github_actions(final_ranges)
 
 
