@@ -44,7 +44,7 @@ class RangeDiscoverer:
             mid_price = (current_min + current_max) // 2
 
             # Anti-bot delay
-            time.sleep(random.uniform(2.0, 4.0))
+            time.sleep(random.uniform(10.0, 20.0))
 
             # Recurse on both halves
             self.discover(crawler, current_min, mid_price)
