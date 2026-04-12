@@ -1,6 +1,7 @@
 import time
 import random
 from typing import TYPE_CHECKING
+from curl_cffi import requests
 
 # This tells Python to only import Crawler for code editors (like VS Code),
 # but completely ignore it when actually running the script!
@@ -14,11 +15,36 @@ class RangeDiscoverer:
         :param max_listings_per_chunk: The safe limit before we split the range (Otodom max is ~3000).
         :param global_max: The price cap before we just dump everything into a "14m+" bucket.
         """
+        self.request_count = 0
+        self.max_requests_per_session = 12  # Safe threshold before DataDome gets suspicious
         self.min_range_name = "low"
         self.max_range_name = "high"
         self.max_listings_per_chunk = max_listings_per_chunk
         self.global_max = global_max
         self.discovered_ranges = []
+
+    def rotate_session_if_needed(self, crawler: 'Crawler'):
+        """Checks if the current session has made too many requests and rotates it."""
+        self.request_count += 1
+
+        if self.request_count >= self.max_requests_per_session:
+            print(f"\n[ANTI-BOT] Made {self.max_requests_per_session} requests. Rotating session identity...")
+
+            # 1. Destroy the old session (clear cookies)
+            crawler.session.close()
+
+            # 2. Take a "coffee break" to let the IP cool down
+            cooldown = random.uniform(45.0, 90.0)
+            print(f"[ANTI-BOT] Sleeping for {cooldown:.2f} seconds before acquiring new clearance...")
+            time.sleep(cooldown)
+
+            # 3. Spin up a brand new session for the next batch
+            crawler.session = requests.Session(impersonate="chrome120")
+
+            # 4. Reset counter
+            self.request_count = 0
+            print("[ANTI-BOT] Session rotated successfully. Resuming discovery...\n")
+
     def discover(self, crawler: 'Crawler', current_min: int, current_max: int):
         """Recursively checks price ranges and splits them if they are too large."""
 
@@ -31,6 +57,8 @@ class RangeDiscoverer:
         crawler.settings.price_min = current_min
         crawler.settings.price_max = current_max
         crawler.params = crawler.generate_params()
+
+        self.rotate_session_if_needed(crawler)
 
         # Count pages using the existing crawler logic
         pages, total_listings = crawler.count_pages()
