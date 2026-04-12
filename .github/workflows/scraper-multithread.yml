@@ -77,8 +77,8 @@ jobs:
           with open('settings.json', 'r') as f: data = json.load(f)
           # Split the 'min-max' string back into variables
           min_val, max_val = '${{ matrix.range }}'.split('-')
-          data['price_min'] = int(min_val)
-          data['price_max'] = int(max_val)
+          data['crawler']['price']['min'] = int(min_val)
+          data['crawler']['price']['max'] = int(max_val)
           with open('settings.json', 'w') as f: json.dump(data, f, indent=4)
           "
 
