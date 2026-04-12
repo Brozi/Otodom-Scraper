@@ -1,6 +1,11 @@
 import time
 import random
-from crawler import Crawler
+from typing import TYPE_CHECKING
+
+# This tells Python to only import Crawler for code editors (like VS Code),
+# but completely ignore it when actually running the script!
+if TYPE_CHECKING:
+    from crawler import Crawler
 
 class RangeDiscoverer:
     def __init__(self, max_listings_per_chunk=2800, global_max=14000000):
