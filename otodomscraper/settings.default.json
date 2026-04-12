@@ -4,12 +4,14 @@
             "min": 0,
             "max": 1000000000
         },
+        "max_listings_per_chunk": 2800,
         "district": " ",
         "province" : "malopolskie",
         "city": "krakow",
         "property_type": "flat",
         "auction_type": "sale",
         "_comments": {
+            "max_listings_per_chunk": "Recommended < 3000, read more in README.md",
             "property_type": "Can be: 'flat', 'studio', 'house', 'investment', 'room', 'plot', 'venue', 'magazine', 'garage'",
             "sale_or_rent": "Can be: 'sale', 'rent'"
         }
