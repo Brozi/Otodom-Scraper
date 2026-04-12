@@ -75,8 +75,10 @@ jobs:
           python -c "
           import json
           with open('settings.json', 'r') as f: data = json.load(f)
-          data['price_min'] = ${{ matrix.range.min }}
-          data['price_max'] = ${{ matrix.range.max }}
+          # Split the 'min-max' string back into variables
+          min_val, max_val = '${{ matrix.range }}'.split('-')
+          data['price_min'] = int(min_val)
+          data['price_max'] = int(max_val)
           with open('settings.json', 'w') as f: json.dump(data, f, indent=4)
           "
 
@@ -90,7 +92,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           # Name the artifact dynamically so each chunk has its own folder
-          name: scraper-results-${{ matrix.range.min }}-${{ matrix.range.max }}
+          name: scraper-results-${{ matrix.range }}
           path: |
             otodomscraper/*.csv
             otodomscraper/*.xlsx
