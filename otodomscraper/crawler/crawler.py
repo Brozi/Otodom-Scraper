@@ -118,8 +118,9 @@ class Crawler:
                     data = json.loads(match.group(1))
                     page_count = data["props"]["pageProps"]["tracking"]["listing"]["page_count"]
                     listing_data = data["props"]["pageProps"]["tracking"]["listing"]
-                    item_count = listing_data.get("item_count", 0)
+                    item_count = listing_data.get("result_count", 0)
                     return int(page_count), int(item_count)
+
                 except (KeyError, TypeError, ValueError) as e:
                     logger.warning(f"Error extracting JSON: {e}")
 

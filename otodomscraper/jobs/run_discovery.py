@@ -3,7 +3,17 @@ import os
 import json
 
 # Add the parent directory to the path so it can import your modules
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+#sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+current_dir = os.path.dirname(os.path.abspath(__file__))  # path/to/jobs
+scraper_dir = os.path.dirname(current_dir)                # path/to/otodomscraper
+
+# Add scraper_dir to path so it can import your modules
+sys.path.append(scraper_dir)
+
+# --- ADD THIS LINE ---
+# Change the working directory so Python finds settings.json exactly where it expects it!
+os.chdir(scraper_dir)
 
 from crawler import Crawler
 from services.discovery import RangeDiscoverer
