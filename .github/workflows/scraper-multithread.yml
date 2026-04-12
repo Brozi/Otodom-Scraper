@@ -1,0 +1,140 @@
+name: Monthly Otodom Scraper
+
+on:
+  schedule:
+    - cron: '0 0 1 * *' # Runs at midnight on the 1st of every month
+  workflow_dispatch:
+
+jobs:
+  # ==========================================
+  # JOB 1: Discover the price ranges
+  # ==========================================
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Create base settings.json securely
+        working-directory: ./otodomscraper
+        run: |
+          cat << 'EOF' > settings.json
+          ${{ secrets.SETTINGS_JSON }}
+          EOF
+
+      - name: Run Discovery Script
+        id: set-matrix
+        working-directory: ./otodomscraper
+        # Assuming you placed the discovery runner in a jobs/ folder as discussed
+        run: python jobs/run_discovery.py
+
+
+  # ==========================================
+  # JOB 2: Run the scraper N times in parallel
+  # ==========================================
+  scrape_chunk:
+    needs: discover
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false # If one chunk fails, let the others finish
+      matrix:
+        range: ${{ fromJson(needs.discover.outputs.matrix) }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Create base settings.json securely
+        working-directory: ./otodomscraper
+        run: |
+          cat << 'EOF' > settings.json
+          ${{ secrets.SETTINGS_JSON }}
+          EOF
+
+      - name: Inject Matrix Prices into settings.json
+        working-directory: ./otodomscraper
+        # This reads the settings.json we just created, updates the min/max prices for this specific chunk, and saves it.
+        run: |
+          python -c "
+          import json
+          with open('settings.json', 'r') as f: data = json.load(f)
+          data['price_min'] = ${{ matrix.range.min }}
+          data['price_max'] = ${{ matrix.range.max }}
+          with open('settings.json', 'w') as f: json.dump(data, f, indent=4)
+          "
+
+      - name: Run the Scraper
+        working-directory: ./otodomscraper
+        timeout-minutes: 355
+        run: python main.py
+
+      - name: Upload Chunk Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          # Name the artifact dynamically so each chunk has its own folder
+          name: scraper-results-${{ matrix.range.min }}-${{ matrix.range.max }}
+          path: |
+            otodomscraper/*.csv
+            otodomscraper/*.xlsx
+            otodomscraper/scraper_log_*.txt
+            otodomscraper/debug_page.html
+          retention-days: 2 # Keep individual chunks for a short time to save space
+
+
+  # ==========================================
+  # JOB 3: Merge all chunks into one final file
+  # ==========================================
+  merge:
+    needs: scrape_chunk
+    if: always() # Run merge even if one chunk failed, so you don't lose data
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Pandas
+        run: pip install pandas openpyxl
+
+      - name: Download all Chunk Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: scraper-results-*
+          path: all_data
+
+      - name: Run Merge Script
+        working-directory: ./otodomscraper
+        # Assuming your merge runner is here
+        run: python jobs/run_merge.py
+
+      - name: Upload Final Master Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-scraper-results
+          path: |
+            otodomscraper/master_listings.csv
+            otodomscraper/master_listings.xlsx
+          retention-days: 7
