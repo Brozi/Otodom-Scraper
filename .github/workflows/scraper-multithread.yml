@@ -35,8 +35,7 @@ jobs:
       - name: Run Discovery Script
         id: set-matrix
         working-directory: ./otodomscraper
-        # Assuming you placed the discovery runner in a jobs/ folder as discussed
-        run: python jobs/run_discovery.py
+        run: python -u jobs/run_discovery.py
 
 
   # ==========================================
