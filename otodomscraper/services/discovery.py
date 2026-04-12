@@ -17,7 +17,7 @@ class RangeDiscoverer:
         self.max_listings_per_chunk = max_listings_per_chunk
         self.global_max = global_max
         self.discovered_ranges = []
-    def discover(self, crawler: Crawler, current_min: int, current_max: int):
+    def discover(self, crawler: 'Crawler', current_min: int, current_max: int):
         """Recursively checks price ranges and splits them if they are too large."""
         if current_min > current_max:
             return
