@@ -1,4 +1,4 @@
-name: Monthly Otodom Scraper
+name: Multithread Otodom Scraper
 
 on:
   schedule:
