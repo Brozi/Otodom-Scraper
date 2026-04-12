@@ -57,11 +57,4 @@ class RangeDiscoverer:
         """Sorts the ranges and adds the final infinite catch-all range."""
         # Sort sequentially by minimum price
         sorted_ranges = sorted(self.discovered_ranges, key=lambda x: x[self.min_range_name])
-
-        # Add the final 5m+ range
-        sorted_ranges.append({
-            self.min_range_name: self.global_max + 1,
-            self.max_range_name: 99999999
-        })
-
         return sorted_ranges
