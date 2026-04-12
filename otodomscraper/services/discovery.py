@@ -48,7 +48,7 @@ class RangeDiscoverer:
             self.discover(crawler, mid_price + 1, current_max)
         else:
             print(f"  -> Safe range found! {current_min} - {current_max} PLN ({total_listings} listings)")
-            self.discovered_ranges.append({"min": current_min, "max": current_max})
+            self.discovered_ranges.append({"low": current_min, "high": current_max})
 
     def get_final_matrix(self):
         """Sorts the ranges and adds the final infinite catch-all range."""
@@ -57,8 +57,8 @@ class RangeDiscoverer:
 
         # Add the final 5m+ range
         sorted_ranges.append({
-            "min": self.global_max + 1,
-            "max": 99999999
+            "low": self.global_max + 1,
+            "high": 99999999
         })
 
         return sorted_ranges
