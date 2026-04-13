@@ -330,7 +330,7 @@ class Crawler:
                         formatted_units.append(u)
                 if formatted_units:
                     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-                        list(executor.map(self.extract_listing_data, formatted_units))z
+                        list(executor.map(self.extract_listing_data, formatted_units))
 
 
                 # Anti-bot delay between pages of the same investment
