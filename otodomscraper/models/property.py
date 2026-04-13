@@ -65,9 +65,13 @@ class PropertyDocument(Document):
 
         :param code: The HTML code containing the property information
         """
+        import json
         listing_information = json.loads(
             code.find("script", {"type": "application/json"}).text
         )
+        with open("debug_listing.json", "w", encoding="utf-8") as f:
+            json.dump(listing_information, f, indent=4, ensure_ascii=False)
+        print(f"DEBUG: Raw listing JSON saved to debug_listing.json for ID: {self.otodom_id}")
         listing_properties = listing_information["props"]["pageProps"]["ad"]
         self.otodom_id = listing_properties["id"]
         self.created_at = self.extract_created_at(listing_properties)
