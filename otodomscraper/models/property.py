@@ -87,7 +87,16 @@ class PropertyDocument(Document):
             listing_properties["target"]["ProperType"]
         ]
         self.market_type = MarketType(listing_properties["target"]["MarketType"])
-        self.auction_type = AUCTION_TYPE_MAP[listing_properties["target"]["OfferType"]]
+        #self.auction_type = AUCTION_TYPE_MAP[listing_properties["target"]["OfferType"]]
+        raw_auction_type = listing_properties["target"].get("OfferType")
+        if raw_auction_type:
+            try:
+                self.auction_type = AUCTION_TYPE_MAP(raw_auction_type)
+            except ValueError:
+                print(f"Nieznany typ oferty: {raw_auction_type}")
+                self.auction_type = None
+        else:
+            self.auction_type = None
         self.localization = self.extract_localization(listing_properties["location"])
         self.construction_status = self.extract_construction_status(
             listing_properties["target"]
