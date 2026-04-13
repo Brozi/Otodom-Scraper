@@ -126,7 +126,7 @@ class PropertyDocument(Document):
         return localization
 
     @staticmethod
-    def extract_construction_status(properties: dict) -> ConstructionStatus | str:
+    def extract_construction_status(properties: dict) -> ConstructionStatus | None:
         """
         Determines the construction status from the properties.
 
@@ -134,7 +134,7 @@ class PropertyDocument(Document):
         :return: The construction status
         """
         if properties.get("ConstructionStatus") is None:
-            return 'None'
+            return None
         return ConstructionStatus(properties["ConstructionStatus"])
 
     @staticmethod
