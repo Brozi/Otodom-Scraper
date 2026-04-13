@@ -4,6 +4,8 @@ from enum import Enum
 class OfferedBy(Enum):
     PRIVATE = "private"
     ESTATE_AGENCY = "agency"
+    DEVELOPER = "developer"
+    DEVELOPER_UNIT = "developer_unit"
 
 
 class AuctionType(Enum):
