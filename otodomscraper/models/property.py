@@ -49,7 +49,7 @@ class PropertyDocument(Document):
     market_type = EnumField(MarketType, required=True)
     auction_type = EnumField(AuctionType, required=True)
     localization = EmbeddedDocumentField(LocalizationDocument, required=True)
-    Construction_status = EnumField(ConstructionStatus)
+    construction_status = EnumField(ConstructionStatus, db_field="Construction_status")
     building = EmbeddedDocumentField(BuildingDocument)
     offered_by = EnumField(OfferedBy, required=True)
     estate_agency = ReferenceField("AgencyDocument", reverse_delete_rule=NULLIFY)
@@ -87,7 +87,7 @@ class PropertyDocument(Document):
         self.market_type = MarketType(listing_properties["target"]["MarketType"])
         self.auction_type = AUCTION_TYPE_MAP[listing_properties["target"]["OfferType"]]
         self.localization = self.extract_localization(listing_properties["location"])
-        self.Construction_status = self.extract_construction_status(
+        self.construction_status = self.extract_construction_status(
             listing_properties["target"]
         )
         self.building = self.extract_building(listing_properties["target"])
