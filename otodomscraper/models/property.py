@@ -169,18 +169,21 @@ class PropertyDocument(Document):
         return building
 
     @staticmethod
-    def extract_offered_by(properties: dict) -> str:
+    def extract_offered_by(properties: dict) -> OfferedBy:
         """
         Determines the offer type from the properties.
 
         :param properties: The properties containing the offer type
         :return: The offer type
         """
-        return (
-            OfferedBy.PRIVATE
-            if properties["agency"] is None
-            else OfferedBy.ESTATE_AGENCY
-        )
+        if properties["agency"] is None:
+            return OfferedBy.PRIVATE
+        elif properties["advertType"] in ["DEVELOPER"]:
+            return OfferedBy.DEVELOPER
+        elif properties["advertType"] in ["DEVELOPER_UNIT"]:
+            return OfferedBy.DEVELOPER_UNIT
+        else:
+            return OfferedBy.ESTATE_AGENCY
 
     @staticmethod
     def informational_json_exists(code: ResultSet) -> bool:
