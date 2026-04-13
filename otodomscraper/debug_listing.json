@@ -1,0 +1,991 @@
+{
+    "props": {
+        "pageProps": {
+            "lang": "pl",
+            "id": "4AOgz",
+            "ad": {
+                "id": 67878379,
+                "price": {
+                    "type": "",
+                    "__typename": "AdvertPrice"
+                },
+                "market": "SECONDARY",
+                "services": [],
+                "publicId": "",
+                "slug": "mieszkanie-18-65-m-stare-podgorze-suterena-ID4AOgz",
+                "advertiserType": "private",
+                "advertType": "PRIVATE",
+                "source": "urn:site:local",
+                "createdAt": "2026-04-06T12:57:14+02:00",
+                "modifiedAt": "2026-04-06T13:47:03+02:00",
+                "description": "<p>Mieszkanie w suterenie (w piwnicy) kamienicy na Starym Podgórzu, przy ul. św Benedykta. Składa się z jednego pokoju z aneksem kuchennym oraz łazienki. Umeblowane i wyposażone w sprzęty AGD - piekarnik, płyta indukcyjna, okap, zmywarka, lodówka, pralka.</p><p>W mieszkaniu znajduje się ogrzewanie podłogowe dwustrefowe miejskie (niskie koszty), wentylacja mechaniczna. Okna wychodzą na stronę dziedzińca, dzięki czemu w mieszkaniu jest cicho nawet przy otwartych oknach.</p><p>Kamienica jest monitorowana — kamery zamontowane są zarówno od strony wejścia, jak i od dziedzińca.</p><p>Miejsca parkingowe są praktycznie zawsze dostępne przy ulicy św. Benedykta.</p><p>Czynsz: 500 zł/mies. (woda, ogrzewanie, śmieci, administracja - w tym fundusz remontowy) - przy 2 osobach.</p>",
+                "developmentId": 0,
+                "developmentTitle": "",
+                "developmentUrl": "",
+                "exclusiveOffer": false,
+                "externalId": "",
+                "features": [
+                    "internet",
+                    "meble",
+                    "pralka",
+                    "zmywarka",
+                    "lodówka",
+                    "kuchenka",
+                    "piekarnik"
+                ],
+                "creationSource": "posting_form",
+                "pushedUpAt": null,
+                "featuresByCategory": [
+                    {
+                        "label": "Media",
+                        "values": [
+                            "internet"
+                        ],
+                        "__typename": "FeatureGroup"
+                    },
+                    {
+                        "label": "Wyposażenie",
+                        "values": [
+                            "meble",
+                            "pralka",
+                            "zmywarka",
+                            "lodówka",
+                            "kuchenka",
+                            "piekarnik"
+                        ],
+                        "__typename": "FeatureGroup"
+                    }
+                ],
+                "featuresWithoutCategory": [],
+                "openDay": null,
+                "referenceId": "",
+                "target": {
+                    "Area": "18.65",
+                    "AreaRange": [],
+                    "Building_material": [
+                        "brick"
+                    ],
+                    "Building_ownership": [
+                        "full_ownership"
+                    ],
+                    "Building_type": [
+                        "tenement"
+                    ],
+                    "City": "krakow",
+                    "City_id": "38",
+                    "Construction_status": [
+                        "ready_to_use"
+                    ],
+                    "Country": "Polska",
+                    "Equipment_types": [
+                        "furniture",
+                        "washing_machine",
+                        "dishwasher",
+                        "fridge",
+                        "stove",
+                        "oven"
+                    ],
+                    "Floor_no": [
+                        "cellar"
+                    ],
+                    "Heating": [
+                        "urban"
+                    ],
+                    "Id": "67878379",
+                    "MarketType": "secondary",
+                    "Media_types": [
+                        "internet"
+                    ],
+                    "ObidoAdvert": "n",
+                    "OfferType": "sprzedaz",
+                    "Photo": "aHR0cHM6Ly9pcmVsYW5kLmFwb2xsby5vbHhjZG4uY29tL3YxL2ZpbGVzL2V5Sm1iaUk2SWpWbFlYZGlOemt6TUhZeGVUSXRRVkJNSWl3aWR5STZXM3NpWm00aU9pSmxiblptY1hGbE1XRjVOR3N4TFVGUVRDSXNJbk1pT2lJeE5DSXNJbkFpT2lJeE1Dd3RNVEFpTENKaElqb2lNQ0o5WFgwLmZpTDJxQkk4NjVwamVZbzNyVWZBdUZMakNvakZBNW03bVdBa040MEVMam8vaW1hZ2U7cz02NTV4NDkxO3E9ODA=",
+                    "Price": 350000,
+                    "PriceRange": [
+                        "250001-500000"
+                    ],
+                    "Price_per_m": 18767,
+                    "ProperType": "mieszkanie",
+                    "Province": "malopolskie",
+                    "RegularUser": "y",
+                    "Rooms_num": [
+                        "1"
+                    ],
+                    "Subregion": "powiat-krakow",
+                    "Title": "TWllc3prYW5pZSAxOCw2NSBtwrIgfCBTdGFyZSBQb2Rnw7NyemUgfCBzdXRlcmVuYQ==",
+                    "Windows_type": [
+                        "plastic"
+                    ],
+                    "categoryId": "101",
+                    "env": "production",
+                    "hidePrice": "0",
+                    "seller_id": "10763679",
+                    "user_type": "private"
+                },
+                "title": "Mieszkanie 18,65 m² | Stare Podgórze | suterena",
+                "topInformation": [
+                    {
+                        "label": "area",
+                        "values": [
+                            "18.65"
+                        ],
+                        "unit": "m²",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "building_ownership",
+                        "values": [
+                            "building_ownership::full_ownership"
+                        ],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "rooms_num",
+                        "values": [
+                            "1"
+                        ],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "construction_status",
+                        "values": [
+                            "construction_status-67::ready_to_use"
+                        ],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "floor",
+                        "values": [
+                            "floor_no::cellar",
+                            ""
+                        ],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "outdoor",
+                        "values": [],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "rent",
+                        "values": [],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "car",
+                        "values": [],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "remote_services",
+                        "values": [],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "heating",
+                        "values": [
+                            "heating::urban"
+                        ],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    }
+                ],
+                "additionalInformation": [
+                    {
+                        "label": "market",
+                        "values": [
+                            "market::secondary"
+                        ],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "advertiser_type",
+                        "values": [
+                            "advertiser_type::private"
+                        ],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "free_from",
+                        "values": [
+                            "2026-04-13"
+                        ],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "build_year",
+                        "values": [],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "building_type",
+                        "values": [
+                            "building_type::tenement"
+                        ],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "windows_type",
+                        "values": [
+                            "windows_type::plastic"
+                        ],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "lift",
+                        "values": [
+                            "::n"
+                        ],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "media_types",
+                        "values": [
+                            "media_types::internet"
+                        ],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "security_types",
+                        "values": [],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "equipment_types",
+                        "values": [
+                            "equipment_types::furniture",
+                            "equipment_types::washing_machine",
+                            "equipment_types::dishwasher",
+                            "equipment_types::fridge",
+                            "equipment_types::stove",
+                            "equipment_types::oven"
+                        ],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "extras_types",
+                        "values": [],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    },
+                    {
+                        "label": "building_material",
+                        "values": [
+                            "building_material-69::brick"
+                        ],
+                        "unit": "",
+                        "__typename": "AdditionalInfo"
+                    }
+                ],
+                "url": "https://www.otodom.pl/pl/oferta/mieszkanie-18-65-m-stare-podgorze-suterena-ID4AOgz",
+                "status": "active",
+                "adCategory": {
+                    "id": "101",
+                    "name": "FLAT",
+                    "type": "SELL",
+                    "__typename": "AdvertCategory"
+                },
+                "category": {
+                    "id": 101,
+                    "__typename": "AdCategory"
+                },
+                "characteristics": [
+                    {
+                        "key": "price",
+                        "value": "350000",
+                        "localizedValue": "350 000 zł",
+                        "currency": "PLN",
+                        "__typename": "Characteristic"
+                    },
+                    {
+                        "key": "m",
+                        "value": "18.65",
+                        "localizedValue": "18,65 m²",
+                        "currency": "",
+                        "__typename": "Characteristic"
+                    },
+                    {
+                        "key": "price_per_m",
+                        "value": "18767",
+                        "localizedValue": "18 767 zł/m²",
+                        "currency": "",
+                        "__typename": "Characteristic"
+                    },
+                    {
+                        "key": "rooms_num",
+                        "value": "1",
+                        "localizedValue": "1",
+                        "currency": "",
+                        "__typename": "Characteristic"
+                    },
+                    {
+                        "key": "market",
+                        "value": "secondary",
+                        "localizedValue": "wtórny",
+                        "currency": "",
+                        "__typename": "Characteristic"
+                    },
+                    {
+                        "key": "building_type",
+                        "value": "tenement",
+                        "localizedValue": "kamienica",
+                        "currency": "",
+                        "__typename": "Characteristic"
+                    },
+                    {
+                        "key": "floor_no",
+                        "value": "cellar",
+                        "localizedValue": "suterena",
+                        "currency": "",
+                        "__typename": "Characteristic"
+                    },
+                    {
+                        "key": "building_material",
+                        "value": "brick",
+                        "localizedValue": "cegła",
+                        "currency": "",
+                        "__typename": "Characteristic"
+                    },
+                    {
+                        "key": "windows_type",
+                        "value": "plastic",
+                        "localizedValue": "plastikowe",
+                        "currency": "",
+                        "__typename": "Characteristic"
+                    },
+                    {
+                        "key": "heating",
+                        "value": "urban",
+                        "localizedValue": "miejskie",
+                        "currency": "",
+                        "__typename": "Characteristic"
+                    },
+                    {
+                        "key": "construction_status",
+                        "value": "ready_to_use",
+                        "localizedValue": "do zamieszkania",
+                        "currency": "",
+                        "__typename": "Characteristic"
+                    },
+                    {
+                        "key": "building_ownership",
+                        "value": "full_ownership",
+                        "localizedValue": "pełna własność",
+                        "currency": "",
+                        "__typename": "Characteristic"
+                    },
+                    {
+                        "key": "free_from",
+                        "value": "2026-04-13",
+                        "localizedValue": "2026-04-13",
+                        "currency": "",
+                        "__typename": "Characteristic"
+                    }
+                ],
+                "images": [
+                    {
+                        "thumbnail": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjVlYXdiNzkzMHYxeTItQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.fiL2qBI865pjeYo3rUfAuFLjCojFA5m7mWAkN40ELjo/image;s=184x138;q=80",
+                        "small": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjVlYXdiNzkzMHYxeTItQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.fiL2qBI865pjeYo3rUfAuFLjCojFA5m7mWAkN40ELjo/image;s=314x236;q=80",
+                        "medium": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjVlYXdiNzkzMHYxeTItQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.fiL2qBI865pjeYo3rUfAuFLjCojFA5m7mWAkN40ELjo/image;s=655x491;q=80",
+                        "large": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjVlYXdiNzkzMHYxeTItQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.fiL2qBI865pjeYo3rUfAuFLjCojFA5m7mWAkN40ELjo/image;s=1280x1024;q=80",
+                        "__typename": "AdImage"
+                    },
+                    {
+                        "thumbnail": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjdjMWVnZ2FmbG90NjItQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0._iSpb4JCZ59JueeDFsZEt47Q7X4h7JrTt2w1Itl8xkM/image;s=184x138;q=80",
+                        "small": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjdjMWVnZ2FmbG90NjItQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0._iSpb4JCZ59JueeDFsZEt47Q7X4h7JrTt2w1Itl8xkM/image;s=314x236;q=80",
+                        "medium": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjdjMWVnZ2FmbG90NjItQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0._iSpb4JCZ59JueeDFsZEt47Q7X4h7JrTt2w1Itl8xkM/image;s=655x491;q=80",
+                        "large": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjdjMWVnZ2FmbG90NjItQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0._iSpb4JCZ59JueeDFsZEt47Q7X4h7JrTt2w1Itl8xkM/image;s=1280x1024;q=80",
+                        "__typename": "AdImage"
+                    },
+                    {
+                        "thumbnail": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6InE5Yng5ZTk4bnU4aDItQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.BxE610X7Y52T45n_rrobHIjmqq81zTJhXoI-bw_-Ydo/image;s=184x138;q=80",
+                        "small": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6InE5Yng5ZTk4bnU4aDItQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.BxE610X7Y52T45n_rrobHIjmqq81zTJhXoI-bw_-Ydo/image;s=314x236;q=80",
+                        "medium": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6InE5Yng5ZTk4bnU4aDItQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.BxE610X7Y52T45n_rrobHIjmqq81zTJhXoI-bw_-Ydo/image;s=655x491;q=80",
+                        "large": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6InE5Yng5ZTk4bnU4aDItQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.BxE610X7Y52T45n_rrobHIjmqq81zTJhXoI-bw_-Ydo/image;s=1280x1024;q=80",
+                        "__typename": "AdImage"
+                    },
+                    {
+                        "thumbnail": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjFxam5tZTk2aTZzdS1BUEwiLCJ3IjpbeyJmbiI6ImVudmZxcWUxYXk0azEtQVBMIiwicyI6IjE0IiwicCI6IjEwLC0xMCIsImEiOiIwIn1dfQ.3hY1d3ptn9eh__xKmtS_9_2wMZtzPKgSFHyMTYSwKh0/image;s=184x138;q=80",
+                        "small": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjFxam5tZTk2aTZzdS1BUEwiLCJ3IjpbeyJmbiI6ImVudmZxcWUxYXk0azEtQVBMIiwicyI6IjE0IiwicCI6IjEwLC0xMCIsImEiOiIwIn1dfQ.3hY1d3ptn9eh__xKmtS_9_2wMZtzPKgSFHyMTYSwKh0/image;s=314x236;q=80",
+                        "medium": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjFxam5tZTk2aTZzdS1BUEwiLCJ3IjpbeyJmbiI6ImVudmZxcWUxYXk0azEtQVBMIiwicyI6IjE0IiwicCI6IjEwLC0xMCIsImEiOiIwIn1dfQ.3hY1d3ptn9eh__xKmtS_9_2wMZtzPKgSFHyMTYSwKh0/image;s=655x491;q=80",
+                        "large": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjFxam5tZTk2aTZzdS1BUEwiLCJ3IjpbeyJmbiI6ImVudmZxcWUxYXk0azEtQVBMIiwicyI6IjE0IiwicCI6IjEwLC0xMCIsImEiOiIwIn1dfQ.3hY1d3ptn9eh__xKmtS_9_2wMZtzPKgSFHyMTYSwKh0/image;s=1280x1024;q=80",
+                        "__typename": "AdImage"
+                    },
+                    {
+                        "thumbnail": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjdxZ3kxNDRpdWV0Yi1BUEwiLCJ3IjpbeyJmbiI6ImVudmZxcWUxYXk0azEtQVBMIiwicyI6IjE0IiwicCI6IjEwLC0xMCIsImEiOiIwIn1dfQ.7r1OrPG9KGfXNjnBcjpKG2ZJdUgh7bdLC22lLjaRUJo/image;s=184x138;q=80",
+                        "small": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjdxZ3kxNDRpdWV0Yi1BUEwiLCJ3IjpbeyJmbiI6ImVudmZxcWUxYXk0azEtQVBMIiwicyI6IjE0IiwicCI6IjEwLC0xMCIsImEiOiIwIn1dfQ.7r1OrPG9KGfXNjnBcjpKG2ZJdUgh7bdLC22lLjaRUJo/image;s=314x236;q=80",
+                        "medium": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjdxZ3kxNDRpdWV0Yi1BUEwiLCJ3IjpbeyJmbiI6ImVudmZxcWUxYXk0azEtQVBMIiwicyI6IjE0IiwicCI6IjEwLC0xMCIsImEiOiIwIn1dfQ.7r1OrPG9KGfXNjnBcjpKG2ZJdUgh7bdLC22lLjaRUJo/image;s=655x491;q=80",
+                        "large": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjdxZ3kxNDRpdWV0Yi1BUEwiLCJ3IjpbeyJmbiI6ImVudmZxcWUxYXk0azEtQVBMIiwicyI6IjE0IiwicCI6IjEwLC0xMCIsImEiOiIwIn1dfQ.7r1OrPG9KGfXNjnBcjpKG2ZJdUgh7bdLC22lLjaRUJo/image;s=1280x1024;q=80",
+                        "__typename": "AdImage"
+                    },
+                    {
+                        "thumbnail": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6ImNmNXV6ZHF4dG11djItQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.eLuRe9U-QUB2R67hvsDaKok5H2RnVl3Wy3RfYCHy30g/image;s=184x138;q=80",
+                        "small": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6ImNmNXV6ZHF4dG11djItQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.eLuRe9U-QUB2R67hvsDaKok5H2RnVl3Wy3RfYCHy30g/image;s=314x236;q=80",
+                        "medium": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6ImNmNXV6ZHF4dG11djItQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.eLuRe9U-QUB2R67hvsDaKok5H2RnVl3Wy3RfYCHy30g/image;s=655x491;q=80",
+                        "large": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6ImNmNXV6ZHF4dG11djItQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.eLuRe9U-QUB2R67hvsDaKok5H2RnVl3Wy3RfYCHy30g/image;s=1280x1024;q=80",
+                        "__typename": "AdImage"
+                    },
+                    {
+                        "thumbnail": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6Im0xdnp4anY2NWF3YTEtQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.z2TBlMNdxCO2b2PTP8lngTX8zD5SjV0wYpXXDt288Go/image;s=184x138;q=80",
+                        "small": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6Im0xdnp4anY2NWF3YTEtQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.z2TBlMNdxCO2b2PTP8lngTX8zD5SjV0wYpXXDt288Go/image;s=314x236;q=80",
+                        "medium": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6Im0xdnp4anY2NWF3YTEtQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.z2TBlMNdxCO2b2PTP8lngTX8zD5SjV0wYpXXDt288Go/image;s=655x491;q=80",
+                        "large": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6Im0xdnp4anY2NWF3YTEtQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.z2TBlMNdxCO2b2PTP8lngTX8zD5SjV0wYpXXDt288Go/image;s=1280x1024;q=80",
+                        "__typename": "AdImage"
+                    },
+                    {
+                        "thumbnail": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6InhudzB5ZmJkbnh0bC1BUEwiLCJ3IjpbeyJmbiI6ImVudmZxcWUxYXk0azEtQVBMIiwicyI6IjE0IiwicCI6IjEwLC0xMCIsImEiOiIwIn1dfQ.G-EZ1uBFMzAqBvhNmZM-myTK6u1rffad9cKw2-QyCCo/image;s=184x138;q=80",
+                        "small": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6InhudzB5ZmJkbnh0bC1BUEwiLCJ3IjpbeyJmbiI6ImVudmZxcWUxYXk0azEtQVBMIiwicyI6IjE0IiwicCI6IjEwLC0xMCIsImEiOiIwIn1dfQ.G-EZ1uBFMzAqBvhNmZM-myTK6u1rffad9cKw2-QyCCo/image;s=314x236;q=80",
+                        "medium": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6InhudzB5ZmJkbnh0bC1BUEwiLCJ3IjpbeyJmbiI6ImVudmZxcWUxYXk0azEtQVBMIiwicyI6IjE0IiwicCI6IjEwLC0xMCIsImEiOiIwIn1dfQ.G-EZ1uBFMzAqBvhNmZM-myTK6u1rffad9cKw2-QyCCo/image;s=655x491;q=80",
+                        "large": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6InhudzB5ZmJkbnh0bC1BUEwiLCJ3IjpbeyJmbiI6ImVudmZxcWUxYXk0azEtQVBMIiwicyI6IjE0IiwicCI6IjEwLC0xMCIsImEiOiIwIn1dfQ.G-EZ1uBFMzAqBvhNmZM-myTK6u1rffad9cKw2-QyCCo/image;s=1280x1024;q=80",
+                        "__typename": "AdImage"
+                    },
+                    {
+                        "thumbnail": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6Im54ZGd3cHB0YmlnaTEtQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0._fI6M9TUd9to5LwpuCq9lhNX5KuNddvbz6D3KYyiEeQ/image;s=184x138;q=80",
+                        "small": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6Im54ZGd3cHB0YmlnaTEtQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0._fI6M9TUd9to5LwpuCq9lhNX5KuNddvbz6D3KYyiEeQ/image;s=314x236;q=80",
+                        "medium": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6Im54ZGd3cHB0YmlnaTEtQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0._fI6M9TUd9to5LwpuCq9lhNX5KuNddvbz6D3KYyiEeQ/image;s=655x491;q=80",
+                        "large": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6Im54ZGd3cHB0YmlnaTEtQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0._fI6M9TUd9to5LwpuCq9lhNX5KuNddvbz6D3KYyiEeQ/image;s=1280x1024;q=80",
+                        "__typename": "AdImage"
+                    },
+                    {
+                        "thumbnail": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6ImkzempsOHdmNTZ5cC1BUEwiLCJ3IjpbeyJmbiI6ImVudmZxcWUxYXk0azEtQVBMIiwicyI6IjE0IiwicCI6IjEwLC0xMCIsImEiOiIwIn1dfQ.ZeW1kDvTCQVI5HneRoshSVbb5WNC9mvEeA4qOlocsX4/image;s=184x138;q=80",
+                        "small": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6ImkzempsOHdmNTZ5cC1BUEwiLCJ3IjpbeyJmbiI6ImVudmZxcWUxYXk0azEtQVBMIiwicyI6IjE0IiwicCI6IjEwLC0xMCIsImEiOiIwIn1dfQ.ZeW1kDvTCQVI5HneRoshSVbb5WNC9mvEeA4qOlocsX4/image;s=314x236;q=80",
+                        "medium": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6ImkzempsOHdmNTZ5cC1BUEwiLCJ3IjpbeyJmbiI6ImVudmZxcWUxYXk0azEtQVBMIiwicyI6IjE0IiwicCI6IjEwLC0xMCIsImEiOiIwIn1dfQ.ZeW1kDvTCQVI5HneRoshSVbb5WNC9mvEeA4qOlocsX4/image;s=655x491;q=80",
+                        "large": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6ImkzempsOHdmNTZ5cC1BUEwiLCJ3IjpbeyJmbiI6ImVudmZxcWUxYXk0azEtQVBMIiwicyI6IjE0IiwicCI6IjEwLC0xMCIsImEiOiIwIn1dfQ.ZeW1kDvTCQVI5HneRoshSVbb5WNC9mvEeA4qOlocsX4/image;s=1280x1024;q=80",
+                        "__typename": "AdImage"
+                    },
+                    {
+                        "thumbnail": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjdyZzd2MzJiczFtajEtQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.sI35mtEEEQUizwVXghYIhGVIcKyst8jW5LrbdJ2g8eI/image;s=184x138;q=80",
+                        "small": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjdyZzd2MzJiczFtajEtQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.sI35mtEEEQUizwVXghYIhGVIcKyst8jW5LrbdJ2g8eI/image;s=314x236;q=80",
+                        "medium": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjdyZzd2MzJiczFtajEtQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.sI35mtEEEQUizwVXghYIhGVIcKyst8jW5LrbdJ2g8eI/image;s=655x491;q=80",
+                        "large": "https://ireland.apollo.olxcdn.com/v1/files/eyJmbiI6IjdyZzd2MzJiczFtajEtQVBMIiwidyI6W3siZm4iOiJlbnZmcXFlMWF5NGsxLUFQTCIsInMiOiIxNCIsInAiOiIxMCwtMTAiLCJhIjoiMCJ9XX0.sI35mtEEEQUizwVXghYIhGVIcKyst8jW5LrbdJ2g8eI/image;s=1280x1024;q=80",
+                        "__typename": "AdImage"
+                    }
+                ],
+                "links": {
+                    "localPlanUrl": "",
+                    "videoUrl": "",
+                    "view3dUrl": "",
+                    "walkaroundUrl": "",
+                    "__typename": "AdvertLinks"
+                },
+                "videos": [],
+                "location": {
+                    "id": null,
+                    "coordinates": {
+                        "latitude": 50.044624,
+                        "longitude": 19.9539239,
+                        "__typename": "Coordinates"
+                    },
+                    "mapDetails": {
+                        "radius": 0,
+                        "zoom": 14,
+                        "__typename": "MapDetails"
+                    },
+                    "address": {
+                        "street": {
+                            "id": "175697",
+                            "code": "",
+                            "name": "ul. św. Benedykta",
+                            "number": "",
+                            "__typename": "Street"
+                        },
+                        "subdistrict": null,
+                        "district": {
+                            "id": "300474",
+                            "code": "stare-podgorze",
+                            "name": "Stare Podgórze",
+                            "__typename": "District"
+                        },
+                        "city": {
+                            "id": "38",
+                            "code": "krakow",
+                            "name": "Kraków",
+                            "__typename": "City"
+                        },
+                        "municipality": null,
+                        "county": {
+                            "id": "410",
+                            "code": "powiat-krakow",
+                            "name": "Kraków",
+                            "__typename": "County"
+                        },
+                        "province": {
+                            "id": "6",
+                            "code": "malopolskie",
+                            "name": "małopolskie",
+                            "__typename": "Province"
+                        },
+                        "postalCode": null,
+                        "__typename": "Address"
+                    },
+                    "reverseGeocoding": {
+                        "locations": [
+                            {
+                                "id": "malopolskie",
+                                "locationLevel": "voivodeship",
+                                "name": "małopolskie",
+                                "fullName": "małopolskie",
+                                "fullNameItems": [
+                                    "małopolskie"
+                                ],
+                                "parentIds": [],
+                                "__typename": "BasicLocationObject"
+                            },
+                            {
+                                "id": "malopolskie/krakow/krakow/krakow",
+                                "locationLevel": "city_or_village",
+                                "name": "Kraków",
+                                "fullName": "Kraków, małopolskie",
+                                "fullNameItems": [
+                                    "Kraków",
+                                    "małopolskie"
+                                ],
+                                "parentIds": [
+                                    "malopolskie",
+                                    "malopolskie/krakow",
+                                    "malopolskie/krakow/krakow"
+                                ],
+                                "__typename": "BasicLocationObject"
+                            },
+                            {
+                                "id": "malopolskie/krakow/krakow/krakow/podgorze",
+                                "locationLevel": "district",
+                                "name": "Podgórze",
+                                "fullName": "Podgórze, Kraków, małopolskie",
+                                "fullNameItems": [
+                                    "Podgórze",
+                                    "Kraków",
+                                    "małopolskie"
+                                ],
+                                "parentIds": [
+                                    "malopolskie",
+                                    "malopolskie/krakow",
+                                    "malopolskie/krakow/krakow",
+                                    "malopolskie/krakow/krakow/krakow"
+                                ],
+                                "__typename": "BasicLocationObject"
+                            },
+                            {
+                                "id": "malopolskie/krakow/krakow/krakow/podgorze/stare-podgorze",
+                                "locationLevel": "residential",
+                                "name": "Stare Podgórze",
+                                "fullName": "Stare Podgórze, Podgórze, Kraków, małopolskie",
+                                "fullNameItems": [
+                                    "Stare Podgórze",
+                                    "Podgórze",
+                                    "Kraków",
+                                    "małopolskie"
+                                ],
+                                "parentIds": [
+                                    "malopolskie",
+                                    "malopolskie/krakow",
+                                    "malopolskie/krakow/krakow",
+                                    "malopolskie/krakow/krakow/krakow",
+                                    "malopolskie/krakow/krakow/krakow/podgorze"
+                                ],
+                                "__typename": "BasicLocationObject"
+                            }
+                        ],
+                        "__typename": "ReverseGeocoding"
+                    },
+                    "__typename": "LocationDetails"
+                },
+                "property": {
+                    "id": null,
+                    "type": "FLAT",
+                    "rent": null,
+                    "costs": [],
+                    "condition": "READY_TO_USE",
+                    "properties": {
+                        "equipment": [
+                            "furniture",
+                            "washing_machine",
+                            "dishwasher",
+                            "fridge",
+                            "stove",
+                            "oven"
+                        ],
+                        "areas": [],
+                        "floor": "CELLAR",
+                        "kitchen": null,
+                        "parking": [],
+                        "numberOfRooms": 1,
+                        "rooms": [],
+                        "type": null,
+                        "windowsOrientation": [],
+                        "__typename": "FlatProperties"
+                    },
+                    "buildingProperties": {
+                        "year": null,
+                        "type": "TENEMENT",
+                        "material": "BRICK",
+                        "windows": [
+                            "PLASTIC"
+                        ],
+                        "heating": "URBAN",
+                        "numberOfFloors": null,
+                        "conveniences": [
+                            "INTERNET"
+                        ],
+                        "security": [],
+                        "__typename": "FlatBuildingProperties"
+                    },
+                    "ownership": "FULL_OWNERSHIP",
+                    "area": {
+                        "value": 18.65,
+                        "unit": "M2",
+                        "__typename": "Area"
+                    },
+                    "__typename": "Flat"
+                },
+                "owner": {
+                    "id": 10763679,
+                    "name": "Wojciech Mleczek",
+                    "type": "private",
+                    "phones": [
+                        "+48795819906"
+                    ],
+                    "imageUrl": "",
+                    "contacts": [],
+                    "__typename": "LegacyAdvertOwner"
+                },
+                "agency": null,
+                "seo": {
+                    "title": "1 pokój, mieszkanie na sprzedaż - ul. św. Benedykta, Kraków - 67878379 • www.otodom.pl",
+                    "description": "Świetne 1 pokojowe mieszkanie na sprzedaż w miejscowości ul. św. Benedykta, Kraków, za cenę 350 000 zł. To mieszkanie na sprzedaż  na suterena piętrze ma 18,65 m² powierzchni użytkowej i 18,65 m² powierzchni całkowitej. Właściciel jako najważniejsze zalety mieszkania wymienia: internet, meble, pralka. Otodom 67878379",
+                    "__typename": "AdvertSeo"
+                },
+                "breadcrumbs": [
+                    {
+                        "label": "Mieszkanie na sprzedaż",
+                        "locative": "",
+                        "url": "https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie",
+                        "__typename": "AdvertBreadcrumb"
+                    },
+                    {
+                        "label": "małopolskie",
+                        "locative": "małopolskie",
+                        "url": "https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/malopolskie",
+                        "__typename": "AdvertBreadcrumb"
+                    },
+                    {
+                        "label": "Kraków",
+                        "locative": "Kraków",
+                        "url": "https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/krakow",
+                        "__typename": "AdvertBreadcrumb"
+                    },
+                    {
+                        "label": "Podgórze",
+                        "locative": "Podgórze",
+                        "url": "https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/krakow/podgorze",
+                        "__typename": "AdvertBreadcrumb"
+                    },
+                    {
+                        "label": "Stare Podgórze",
+                        "locative": "Stare Podgórze",
+                        "url": "https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/krakow/stare-podgorze",
+                        "__typename": "AdvertBreadcrumb"
+                    },
+                    {
+                        "label": "ul. św. Benedykta",
+                        "locative": "ul. św. Benedykta",
+                        "url": "https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/krakow?locations%5B0%5D%5BstreetId%5D=175697&locations%5B0%5D%5BcityId%5D=38&locations=%5Bstreets-175697%5D",
+                        "__typename": "AdvertBreadcrumb"
+                    },
+                    {
+                        "label": "Mieszkanie 18,65 m² | Stare Podgórze | suterena",
+                        "locative": "",
+                        "url": "",
+                        "__typename": "AdvertBreadcrumb"
+                    }
+                ],
+                "userAdverts": [],
+                "paginatedUnits": {
+                    "items": null,
+                    "isPriceHidden": null,
+                    "pagination": null,
+                    "facets": null,
+                    "__typename": "AdvertsPages"
+                },
+                "specialOffer": null,
+                "developerURL": "",
+                "unitGroups": {
+                    "unitsGroupBy": "",
+                    "items": [],
+                    "__typename": "DevelopmentUnitGroups"
+                },
+                "enrichment": null,
+                "__typename": "Advert",
+                "contactDetails": {
+                    "name": "Wojciech Mleczek",
+                    "type": "private",
+                    "phones": [
+                        "+48795819906"
+                    ],
+                    "imageUrl": ""
+                }
+            },
+            "relativeUrl": "/pl/oferta/mieszkanie-18-65-m-stare-podgorze-suterena-ID4AOgz",
+            "adTrackingData": {
+                "touch_point_page": "ad_page",
+                "lat": 50.044624,
+                "long": 19.9539239,
+                "ad_photo": 11,
+                "price_currency": "PLN",
+                "special_offer_type": null,
+                "agent_id": null,
+                "parent_id": null,
+                "ad_id": "67878379",
+                "ad_price": 350000,
+                "business": "sprzedaz",
+                "city_id": "38",
+                "city_name": "krakow",
+                "poster_type": "private",
+                "surface": null,
+                "region_id": "malopolskie",
+                "region_name": "malopolskie",
+                "subregion_id": "powiat-krakow",
+                "seller_id": "10763679",
+                "obido_advert": "n",
+                "market": "secondary"
+            },
+            "developmentData": null,
+            "isPreviewMode": false,
+            "isUnifiedAdSchemaEnabled": false,
+            "baxterAdHtml": {
+                "ssrSlots": {}
+            },
+            "currentUser": null,
+            "cookiesCategorisation": {
+                "eupubconsent-v2": [
+                    "C0001"
+                ],
+                "OptanonAlertBoxClosed": [
+                    "C0001"
+                ],
+                "OptanonConsent": [
+                    "C0001"
+                ],
+                "OTAdditionalConsentString": [
+                    "C0001"
+                ],
+                "access_token": [
+                    "C0001"
+                ],
+                "id_token": [
+                    "C0001"
+                ],
+                "refresh_token": [
+                    "C0001"
+                ],
+                "microservice_token": [
+                    "C0001"
+                ],
+                "lastoAuthState": [
+                    "C0001"
+                ],
+                "PHPSESSID": [
+                    "C0001"
+                ],
+                "laquesis": [
+                    "C0001"
+                ],
+                "laquesisff": [
+                    "C0001"
+                ],
+                "laquesisqa": [
+                    "C0001"
+                ],
+                "laquesissu": [
+                    "C0001"
+                ],
+                "lqonap": [
+                    "C0001"
+                ],
+                "lqstatus": [
+                    "C0001"
+                ],
+                "test": [
+                    "C0001"
+                ],
+                "onap": [
+                    "C0001"
+                ],
+                "onap_dev": [
+                    "C0001"
+                ],
+                "lang": [
+                    "C0001"
+                ],
+                "dfp_user_id": [
+                    "C0004"
+                ],
+                "hciam_in_use": [
+                    "C0001"
+                ],
+                "AuthState": [
+                    "C0001"
+                ],
+                "SID": [
+                    "C0001"
+                ],
+                "IDPState": [
+                    "C0001"
+                ],
+                "LogoutState": [
+                    "C0001"
+                ],
+                "datadome": [
+                    "C0001"
+                ],
+                "ldctx": [
+                    "C0002"
+                ],
+                "ldff": [
+                    "C0002"
+                ],
+                "aws-waf-token": [
+                    "C0001"
+                ],
+                "thememode": [
+                    "C0003"
+                ],
+                "idccsrf": [
+                    "C0001"
+                ],
+                "nsr": [
+                    "C0001"
+                ],
+                "O_N": [
+                    "C0003"
+                ],
+                "O_Y": [
+                    "C0002"
+                ],
+                "O_X": [
+                    "C0002"
+                ],
+                "O_LOGGED": [
+                    "C0003"
+                ],
+                "hotjarSurvey": [
+                    "C0004"
+                ]
+            },
+            "experiments": {},
+            "featureFlags": {
+                "isAdAvmModuleEnabled": true,
+                "isGenaiAd2videoEnabled": true,
+                "shouldEnableAd2VideoPreview": true,
+                "isAdFinanceBannerEnabled": true,
+                "isAdFinanceLinkEnabled": true,
+                "isAdMortgageSimulatorEnabled": true,
+                "isListingRentPriceEnabled": true,
+                "isBikPromotionEnabled": true,
+                "isSeoAdsDescriptionEnabled": true,
+                "isPropertyEvaluationPageActive": true,
+                "isRESellerLeadsActive": false,
+                "isSellerLeadsMvpEnabled": false,
+                "isXmlReportEnabled": true,
+                "isOneProductPostingFormEnabled": false,
+                "isAgentAccountMailboxEnabled": true,
+                "isDeveloperGeoPricingEnabled": true,
+                "isIntegrationPageEnabled": true,
+                "isNinFieldEnabledForInvoicing": false,
+                "isMandatoryLoginEnabled": true,
+                "isGeoBasedPricingEnabled": true,
+                "isMyAccountPDFReportsEnabled": true,
+                "isReCaptchaEnabled": true,
+                "isAgencyInvoiceReportEnabled": false,
+                "isRECsrfEnabled": true,
+                "isNexusDeveloperRegistrationFormEnabled": true,
+                "isAgencyPortfolioValueOnAccountOverviewEnabled": false,
+                "isAgencyPortfolioValuePricingEnabled": true,
+                "isAgencyPortfolioValuePricingPageEnabled": true,
+                "isBadgesFeatureEnabled": true,
+                "isInboxCrmIdFilteringEnabled": true,
+                "isDashboardWithStatisticsEnabled": false,
+                "isConciergeMigrationPageEnabled": false,
+                "isAIAssistantChatEnabled": true,
+                "arePaymentReminderBannersEnabled": true,
+                "isSapBlackoutBannerEnabled": false,
+                "isPaywallDiscountBannerEnabled": true,
+                "isPowerVasOnboardingCampaignEnabled": false,
+                "isEnhancedAgentActivationEnabled": true,
+                "shouldShowExternalDeveloperLink": false,
+                "isPowerVasCardDisplayEnabled": true,
+                "isAgentPermissionsPageEnabled": true,
+                "isSecondStepOfBusinessAccountVerificationRemoved": false,
+                "isMyAccountAdsBulkActionsEnhanced": true,
+                "isBulkAgentAssignmentEnabled": true,
+                "isAdAssignmentEnhanced": true,
+                "isPowerVasGroupEnabled": true,
+                "shouldUseUnifiedAdSchema": true,
+                "isNoPhotobookingOnImovirtualPricingEnabled": true,
+                "isEInvoicingEnabled": true,
+                "isNinjaBetaVersionEnabled": true,
+                "hasBusinessRegistrationFlowBeenEnhanced": true,
+                "isOurTeamTableSortingEnabled": true,
+                "isSelfRefCanonicalLinkLublinOpoleEnabled": false,
+                "areCityLevelLinksKoninSkierniewiceEnabled": false,
+                "isNexusPromotePageEnabled": false,
+                "isVasAutoRenewalEnabled": false,
+                "isPostingFormAgentAccountEnabled": false,
+                "isPostingFormFreeTextStreetEnabled": false,
+                "isAdsAIEnrichmentEnabled": true,
+                "hasAgentProfileBeenRevamped": false,
+                "isEnhancedAgentDeletionEnabled": true,
+                "areAccountLevelStatisticsForAgentsEnabled": false,
+                "areAdLevelStatisticsEnabled": false,
+                "isOurTeamPendingTabEnhanced": false,
+                "isPlDynamicMetaTemplatesEnabled": false,
+                "isCompaniesListingPageEnabled": false,
+                "isDynamicFaqEnabled": true,
+                "__typename": "FeatureFlags"
+            },
+            "laquesisResult": null,
+            "userSessionId": "c5e0268f-b894-423f-ae0b-0bcf374807ba",
+            "unconfirmedUserAuthToken": null,
+            "desktopHeader": {
+                "Is-Desktop": "true"
+            }
+        },
+        "__N_SSP": true
+    },
+    "page": "/pl/oferta/[id]",
+    "query": {
+        "id": "mieszkanie-18-65-m-stare-podgorze-suterena-ID4AOgz"
+    },
+    "buildId": "6jqBNnGN6K5c1zAFzRQRj",
+    "assetPrefix": "https://statics.otodom.pl/fp_statics",
+    "isFallback": false,
+    "dynamicIds": [
+        84308,
+        50083,
+        26098,
+        7512,
+        4610,
+        78750,
+        1194
+    ],
+    "gssp": true,
+    "appGip": true,
+    "scriptLoader": []
+}
