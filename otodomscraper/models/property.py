@@ -44,7 +44,7 @@ class PropertyDocument(Document):
     heating = StringField()
     extras = StringField()
     security_types = StringField()
-    description = StringField(db_field="construction_status")
+    description = StringField(db_field="description")
     rent = IntField()
     property_type = EnumField(PropertyType, required=True)
     market_type = EnumField(MarketType, required=True)
