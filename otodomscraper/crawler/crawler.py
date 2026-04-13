@@ -138,7 +138,7 @@ class Crawler:
         # 2. Stop the script so we don't lose data.
         raise Exception("CRITICAL: Failed to count pages 3 times. IP is temporarily blocked.")
 
-    def extract_listings_from_page(self, page: int, override_url: str) -> list:
+    def extract_listings_from_page(self, page: int, override_url: str = None) -> list:
         """
         Crawl the given page and extract listings from the Next.js JSON.
         """
