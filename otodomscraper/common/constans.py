@@ -24,7 +24,7 @@ class PropertyType(Enum):
 
 
 class ConstructionStatus(Enum):
-    TO_RENOVATE = "to_renovate"
+    TO_RENOVATE = "to_renovation"
     TO_FINISH = "to_completion"
     READY_TO_USE = "ready_to_use"
 
