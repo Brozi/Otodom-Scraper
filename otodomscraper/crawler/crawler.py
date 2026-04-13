@@ -395,8 +395,47 @@ class Crawler:
             property_.auction_type = AuctionType.SALE
             property_.property_type = PropertyType.FLAT  # Or extract from dict if available
 
-            # Note: localization/building data could be extracted here from the dict if needed,
-            # or copied from the parent investment.
+            # ---> ADD THIS BLOCK <---
+            from models.localization import LocalizationDocument
+            loc = LocalizationDocument()
+
+            # Start with guaranteed fallbacks so MongoDB never crashes
+            loc.province = self.settings.province
+            loc.city = self.settings.city
+            loc.district = self.settings.district
+
+            # Try to enrich with exact data from the unit's JSON
+            location_data = unit_dict.get('location', {})
+            address_data = location_data.get('address', {})
+
+            if address_data:
+                city_dict = address_data.get('city', {})
+                if isinstance(city_dict, dict) and (city_dict.get('code') or city_dict.get('name')):
+                    loc.city = city_dict.get('code', city_dict.get('name'))
+
+                province_dict = address_data.get('province', {})
+                if isinstance(province_dict, dict) and (province_dict.get('code') or province_dict.get('name')):
+                    loc.province = province_dict.get('code', province_dict.get('name'))
+
+                district_dict = address_data.get('district', {})
+                if isinstance(district_dict, dict) and (district_dict.get('code') or district_dict.get('name')):
+                    loc.district = district_dict.get('code', district_dict.get('name'))
+
+                county_dict = address_data.get('county', {})
+                if isinstance(county_dict, dict):
+                    loc.county = county_dict.get('code', county_dict.get('name'))
+
+                street_dict = address_data.get('street', {})
+                if isinstance(street_dict, dict):
+                    loc.street = street_dict.get('name', street_dict.get('code'))
+
+            # Extract coordinates if available
+            map_details = location_data.get('mapDetails', {})
+            if map_details:
+                loc.latitude = float(map_details.get('lat', 0.0))
+                loc.longitude = float(map_details.get('lon', 0.0))
+
+            property_.localization = loc
 
             logger.info(f" Saved Unit directly from JSON: {property_.link}")
             PropertyService.put(property_)
