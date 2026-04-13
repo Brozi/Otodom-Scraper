@@ -95,7 +95,7 @@ class Constans:
         "promoted",
         "property_type",
         "rent",
-        "construction_status",
+        "Construction_status",
         "rooms",
         "security_types",
         "title",

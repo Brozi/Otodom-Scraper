@@ -49,7 +49,8 @@ class PropertyDocument(Document):
     market_type = EnumField(MarketType, required=True)
     auction_type = EnumField(AuctionType, required=True)
     localization = EmbeddedDocumentField(LocalizationDocument, required=True)
-    Construction_status = EnumField(ConstructionStatus)
+    #Construction_status = EnumField(ConstructionStatus)
+    Construction_status = StringField()
     building = EmbeddedDocumentField(BuildingDocument)
     offered_by = EnumField(OfferedBy, required=True)
     estate_agency = ReferenceField("AgencyDocument", reverse_delete_rule=NULLIFY)
@@ -87,9 +88,10 @@ class PropertyDocument(Document):
         self.market_type = MarketType(listing_properties["target"]["MarketType"])
         self.auction_type = AUCTION_TYPE_MAP[listing_properties["target"]["OfferType"]]
         self.localization = self.extract_localization(listing_properties["location"])
-        self.Construction_status = self.extract_construction_status(
-            listing_properties["target"]
-        )
+        #self.Construction_status = self.extract_construction_status(
+            #listing_properties["target"]
+        #)
+        self.Construction_status = self.extract_construction_status(listing_properties)
         self.building = self.extract_building(listing_properties["target"])
         self.offered_by = self.extract_offered_by(listing_properties)
 
@@ -126,16 +128,18 @@ class PropertyDocument(Document):
         return localization
 
     @staticmethod
-    def extract_construction_status(properties: dict) -> ConstructionStatus | None:
+    def extract_construction_status(properties: dict) -> str | None:
         """
         Determines the construction status from the properties.
 
         :param properties: The properties containing the construction status
         :return: The construction status
         """
-        if properties.get("ConstructionStatus") is None:
+        status_list = properties.get("Construction_status")
+        if not status_list:
             return None
-        return ConstructionStatus(properties["ConstructionStatus"])
+        # Otodom sends this as a list like ["ready_to_use"]. We join it for the CSV.
+        return ", ".join(status_list)
 
     @staticmethod
     def extract_building(properties: dict) -> BuildingDocument | None:
