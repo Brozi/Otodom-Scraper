@@ -49,7 +49,7 @@ class PropertyDocument(Document):
     market_type = EnumField(MarketType, required=True)
     auction_type = EnumField(AuctionType, required=True)
     localization = EmbeddedDocumentField(LocalizationDocument, required=True)
-    construction_status = StringField(ConstructionStatus, required=True)
+    construction_status = ListField(StringField(ConstructionStatus))
     building = EmbeddedDocumentField(BuildingDocument)
     offered_by = EnumField(OfferedBy, required=True)
     estate_agency = ReferenceField("AgencyDocument", reverse_delete_rule=NULLIFY)
