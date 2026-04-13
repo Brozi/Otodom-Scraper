@@ -115,9 +115,16 @@ class Crawler:
             if match:
                 try:
                     data = json.loads(match.group(1))
-                    page_count = data["props"]["pageProps"]["tracking"]["listing"]["page_count"]
-                    listing_data = data["props"]["pageProps"]["tracking"]["listing"]
-                    item_count = listing_data.get("result_count", 0)
+                    ad_data = data["props"]["pageProps"].get("ad", {})
+                    if "paginatedUnits" in ad_data:
+                        listing_data = ad_data["paginatedUnits"]
+                        page_count = listing_data["pagination"]["totalPages"]
+                        item_count = listing_data["pagination"].get("totalResult", 0)
+                    else:
+                        page_count = data["props"]["pageProps"]["tracking"]["listing"]["page_count"]
+                        listing_data = data["props"]["pageProps"]["tracking"]["listing"]
+                        item_count = listing_data.get("result_count", 0)
+
                     return int(page_count), int(item_count)
 
                 except (KeyError, TypeError, ValueError) as e:
@@ -131,12 +138,13 @@ class Crawler:
         # 2. Stop the script so we don't lose data.
         raise Exception("CRITICAL: Failed to count pages 3 times. IP is temporarily blocked.")
 
-    def extract_listings_from_page(self, page: int) -> list:
+    def extract_listings_from_page(self, page: int, override_url: str) -> list:
         """
         Crawl the given page and extract listings from the Next.js JSON.
         """
         params = self.params.copy()
         params["page"] = page
+        url = override_url if override_url else self.generate_search_url()
 
         import time, random
         # Change max_retries to 1. If it blocks us, try ONE more time, then abandon the page.
@@ -149,7 +157,7 @@ class Crawler:
 
             try:
                 response = self.session.get(
-                    url=self.generate_search_url(), params=params, timeout=15)
+                    url=url, params=params, timeout=15)
 
                 if response.status_code in [403, 405, 429]:
                     # We now know the penalty box is roughly 10 minutes.
@@ -174,8 +182,15 @@ class Crawler:
                     json_text = html[json_start:json_end].strip()
                     data = json.loads(json_text)
 
-                    items = data["props"]["pageProps"]["data"]["searchAds"]["items"]
-                    return items
+                    ad_data = data["props"]["pageProps"].get("ad", {})
+                    if "paginatedUnits" in ad_data:
+                        items = ad_data["paginatedUnits"]["items"]
+                        return items
+                    else:
+                        items = data["props"]["pageProps"]["data"]["searchAds"]["items"]
+                        return items
+
+
                 else:
                     logger.warning(f"__NEXT_DATA__ not found on page {page}. Status Code: {response.status_code}")
                     time.sleep(5)
@@ -233,6 +248,9 @@ class Crawler:
                 property_.estate_agency = agency_doc.to_dbref()
                 listing.agency = agency_doc
 
+            if property_.offered_by == OfferedBy.DEVELOPER:
+                self.process_investment(property_.link)
+                return
             if PropertyService.get_by_otodom_id(property_.otodom_id) is None:
                 logger.info(f" Saved to Database: {property_.link}")
                 property_ = PropertyService.put(property_)
@@ -283,6 +301,48 @@ class Crawler:
                 max_retries -= 1
 
         raise DataExtractionError(url=url)
+
+    def process_investment(self, investment_url: str,):
+        """
+        Runs a nested crawl for an investment by reusing search-result logic.
+        """
+        # 1. Backup current search state so we can return to it later
+        original_base_url = self.settings.base_url
+        original_params = self.params
+
+        try:
+            # 2. Re-configure the crawler to focus only on this investment
+            # We strip existing params so count_pages() doesn't add price filters etc.
+            self.settings.base_url = investment_url
+            self.params = {}
+
+            # 3. REUSE: count_pages()
+            # This will look at the investment page and find the total pages of units
+            total_pages, _ = self.count_pages()
+            print(f"[INVESTMENT] Scaling out to {total_pages} pages of units...")
+
+            for page in range(1, total_pages + 1):
+                units = self.extract_listings_from_page(page, override_url=investment_url)
+                formatted_units = []
+                for u in units:
+                    if u.get("url"):
+                        u["full_url"] = f"{self.settings.base_url}{u['url']}" if u['url'].startswith('/') else u['url']
+                        formatted_units.append(u)
+                if formatted_units:
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+                        list(executor.map(self.extract_listing_data, formatted_units))z
+
+
+                # Anti-bot delay between pages of the same investment
+                import time
+                time.sleep(random.uniform(3.0, 7.0))
+
+        finally:
+            # 7. CRITICAL: Restore original search parameters
+            # This ensures the main crawler continues where it left off
+            self.settings.base_url = original_base_url
+            self.params = original_params
+            print(f"[INVESTMENT] Completed sub-crawl. Returning to main search.")
 
     def to_csv_file(self, filename: str) -> None:
         """
