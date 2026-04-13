@@ -44,6 +44,7 @@ class PropertyDocument(Document):
     heating = StringField()
     extras = StringField()
     security_types = StringField()
+    description = StringField()
     rent = IntField()
     property_type = EnumField(PropertyType, required=True)
     market_type = EnumField(MarketType, required=True)
@@ -90,6 +91,7 @@ class PropertyDocument(Document):
         self.construction_status = self.extract_construction_status(
             listing_properties["target"]
         )
+        self.description = self.extract_description(listing_properties)
         self.building = self.extract_building(listing_properties["target"])
         self.offered_by = self.extract_offered_by(listing_properties)
 
@@ -281,3 +283,19 @@ class PropertyDocument(Document):
         if security_types is None:
             return None
         return ",".join(security_types)
+
+    @staticmethod
+    def extract_description(listing_information: dict) -> str | None:
+        """Extracts the property description and cleans HTML tags/newlines."""
+        ad_data = listing_information.get("props", {}).get("pageProps", {}).get("ad", {})
+        desc = ad_data.get("description")
+
+        # Only process if we actually have a string
+        if isinstance(desc, str) and desc.strip():
+            import re
+            # Strip out HTML tags like <p> and <br>
+            clean_desc = re.sub('<[^<]+?>', ' ', desc)
+            # Replace newlines/carriage returns with spaces to keep CSV rows intact
+            return clean_desc.replace('\n', ' ').replace('\r', ' ').strip()
+
+        return None
