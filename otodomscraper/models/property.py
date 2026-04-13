@@ -91,7 +91,7 @@ class PropertyDocument(Document):
         self.construction_status = self.extract_construction_status(
             listing_properties["target"]
         )
-        self.description = self.extract_description(listing_properties)
+        self.description = self.extract_description(listing_information)
         self.building = self.extract_building(listing_properties["target"])
         self.offered_by = self.extract_offered_by(listing_properties)
 
@@ -285,9 +285,9 @@ class PropertyDocument(Document):
         return ",".join(security_types)
 
     @staticmethod
-    def extract_description(listing_information: dict) -> str | None:
+    def extract_description(properties: dict) -> str | None:
         """Extracts the property description and cleans HTML tags/newlines."""
-        ad_data = listing_information.get("props", {}).get("pageProps", {}).get("ad", {})
+        ad_data = properties.get("props", {}).get("pageProps", {})
         desc = ad_data.get("description")
 
         # Only process if we actually have a string
