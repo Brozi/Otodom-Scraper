@@ -52,6 +52,7 @@ class Crawler:
         self.settings: Settings = Settings()
         self.params: dict = self.generate_params()
         self.listings: list[Listing] = []
+        self.investments_queue: set[str] = set()
         connect_to_database(host=self.settings.mongo_db_host)
 
     def generate_search_url(self) -> str:
@@ -83,7 +84,8 @@ class Crawler:
             "priceMax": self.settings.price_max,
         }
 
-    def count_pages(self) -> tuple[int, int] | None:
+    # UPDATE the function signature to accept override_url
+    def count_pages(self, override_url: str = None) -> tuple[int, int] | None:
         """
         Count the number of pages to crawl using Regex to bypass HTML parser limits.
         """
@@ -95,13 +97,16 @@ class Crawler:
             time.sleep(delay)
 
             logger.info(f"Counting pages to crawl, try: {4 - max_retries}/3")
-            search_url = self.generate_search_url()
+
+            # USE the override_url if provided, otherwise generate the normal search URL
+            search_url = override_url if override_url else self.generate_search_url()
+
             response = self.session.get(url=search_url, params=self.params, timeout=20)
             html = response.text
             print(f"Status: {response.status_code}, Length: {len(html)}")
             if response.status_code in [403, 405, 429]:
                 cooldown = random.uniform(600.0, 660.0)
-                print(f"\nDATADOME BLOCK DETECTED! Sleeping {cooldown/60:.2f}min to clear the pentalty box... ")
+                print(f"\nDATADOME BLOCK DETECTED! Sleeping {cooldown / 60:.2f}min to clear the penalty box... ")
                 import time
                 time.sleep(cooldown)
                 self.session = requests.Session(impersonate="chrome120")  # Get fresh browser
@@ -111,16 +116,20 @@ class Crawler:
             with open("debug_page.html", "w", encoding="utf-8") as f:
                 f.write(html)
 
+            import re, json
             match = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', html, re.DOTALL)
             if match:
                 try:
                     data = json.loads(match.group(1))
+
+                    # Check if this is an investment page with paginatedUnits
                     ad_data = data["props"]["pageProps"].get("ad", {})
                     if "paginatedUnits" in ad_data:
                         listing_data = ad_data["paginatedUnits"]
                         page_count = listing_data["pagination"]["totalPages"]
                         item_count = listing_data["pagination"].get("totalResults", 0)
                     else:
+                        # Standard search results
                         page_count = data["props"]["pageProps"]["tracking"]["listing"]["page_count"]
                         listing_data = data["props"]["pageProps"]["tracking"]["listing"]
                         item_count = listing_data.get("result_count", 0)
@@ -128,14 +137,12 @@ class Crawler:
                     return int(page_count), int(item_count)
 
                 except (KeyError, TypeError, ValueError) as e:
-                    logger.warning(f"Error extracting JSON: {e}")
+                    logger.error(f"Error parsing pagination JSON: {e}")
+                    return 0, 0
+            else:
+                logger.warning(f"Could not find __NEXT_DATA__ script tag.")
+                return 0, 0
 
-            import time
-            time.sleep(5)
-            max_retries -= 1
-
-        logger.warning("No listings found with given parameters or blocked.")
-        # 2. Stop the script so we don't lose data.
         raise Exception("CRITICAL: Failed to count pages 3 times. IP is temporarily blocked.")
 
     def extract_listings_from_page(self, page: int, override_url: str = None) -> list:
@@ -249,7 +256,8 @@ class Crawler:
                 listing.agency = agency_doc
 
             if property_.offered_by == OfferedBy.DEVELOPER:
-                self.process_investment(property_.link)
+                logger.info(f" Queueing investment for later: {property_.link}")
+                self.investments_queue.add(property_.link)
                 return
             if PropertyService.get_by_otodom_id(property_.otodom_id) is None:
                 logger.info(f" Saved to Database: {property_.link}")
@@ -302,47 +310,99 @@ class Crawler:
 
         raise DataExtractionError(url=url)
 
-    def process_investment(self, investment_url: str):
+    def process_investment_queue(self):
         """
-        Runs a nested crawl for an investment by reusing search-result logic.
+        Processes all queued investments after the main search chunk is complete.
+        Extracts unit data directly from the investment's JSON to save HTTP requests.
         """
+        if not self.investments_queue:
+            return
+
+        print(f"\n[INVESTMENT] Processing {len(self.investments_queue)} queued investments...")
         original_base_url = self.settings.base_url
-        original_params = self.params
+        original_params = self.params.copy()
 
-        try:
-            self.settings.base_url = investment_url
-            self.params = {}
+        # Convert to list so we can iterate safely
+        for investment_url in list(self.investments_queue):
+            try:
+                print(f"[INVESTMENT] Scraping: {investment_url}")
+                self.params = {}
 
-            # Reuse count_pages to find out how many pages of units exist
-            total_pages, _ = self.count_pages()
-            print(f"[INVESTMENT] Scaling out to {total_pages} pages of units...")
+                # Use override_url to count pages for this specific investment
+                total_pages, _ = self.count_pages(override_url=investment_url)
 
-            for page in range(1, total_pages + 1):
-                # Fetch unit items from the current investment page
-                units = self.extract_listings_from_page(page, override_url=investment_url)
+                for page in range(1, (total_pages or 1) + 1):
+                    # This returns the pure JSON dictionaries of the units
+                    units_data = self.extract_listings_from_page(page, override_url=investment_url)
 
-                formatted_units = []
-                for u in units:
-                    if u.get("url"):
-                        # FIX: Use Constans.DEFAULT_URL to build the correct link
-                        path = u['url']
-                        full_url = f"{Constans.DEFAULT_URL}{path}" if path.startswith('/') else path
-                        u["full_url"] = full_url
-                        formatted_units.append(u)
+                    for unit_dict in units_data:
+                        self.extract_unit_from_json(unit_dict, investment_url)
 
-                # FIX: Process the NEWLY found units, not the session history
-                if formatted_units:
-                    print(f"  -> Page {page}: Processing {len(formatted_units)} units...")
-                    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-                        list(executor.map(self.extract_listing_data, formatted_units))
+                # Remove from queue once successfully processed
+                self.investments_queue.remove(investment_url)
 
-                import time
+                import time, random
                 time.sleep(random.uniform(3.0, 7.0))
 
-        finally:
-            self.settings.base_url = original_base_url
-            self.params = original_params
-            print(f"[INVESTMENT] Completed sub-crawl. Returning to main search.")
+            except Exception as e:
+                logger.error(f"[INVESTMENT] Failed to process {investment_url}: {e}")
+
+        # Restore original crawler state
+        self.settings.base_url = original_base_url
+        self.params = original_params
+        print(f"[INVESTMENT] Finished processing queue.\n")
+
+    def extract_unit_from_json(self, unit_dict: dict, investment_url: str):
+        """
+        Maps a unit's JSON dictionary directly to a PropertyDocument and saves it.
+        Bypasses the need to request the unit's individual HTML page.
+        """
+        from models.property import PropertyDocument
+        from services.property import PropertyService
+        from common.constans import Constans, OfferedBy, PropertyType, MarketType, AuctionType
+        import datetime
+
+        # Generate full URL
+        path = unit_dict.get('url', '')
+        full_url = f"{Constans.DEFAULT_URL}{path}" if path.startswith('/') else path
+
+        # Check if it already exists to avoid unnecessary processing
+        otodom_id = unit_dict.get('id')
+        if not otodom_id or PropertyService.get_by_otodom_id(otodom_id):
+            return
+
+        try:
+            property_ = PropertyDocument()
+            property_.link = full_url
+            property_.otodom_id = otodom_id
+            property_.created_at = datetime.datetime.now()
+            property_.title = unit_dict.get('title', 'Developer Unit')
+            property_.area = float(unit_dict.get('areaInSquareMeters', 0.0))
+            property_.rooms = str(unit_dict.get('roomsNumber', ''))
+
+            # Map pricing
+            price_info = unit_dict.get('price', {})
+            if isinstance(price_info, dict):
+                property_.price = price_info.get('value')
+            else:
+                property_.price = price_info
+
+            property_.price_per_meter = unit_dict.get('pricePerSquareMeter', {}).get('value')
+
+            # Static defaults for developer units
+            property_.offered_by = OfferedBy.DEVELOPER_UNIT
+            property_.market_type = MarketType.PRIMARY
+            property_.auction_type = AuctionType.SALE
+            property_.property_type = PropertyType.FLAT  # Or extract from dict if available
+
+            # Note: localization/building data could be extracted here from the dict if needed,
+            # or copied from the parent investment.
+
+            logger.info(f" Saved Unit directly from JSON: {property_.link}")
+            PropertyService.put(property_)
+
+        except Exception as e:
+            logger.error(f"Failed to map JSON for unit {full_url}: {e}")
 
     def to_csv_file(self, filename: str) -> None:
         """
