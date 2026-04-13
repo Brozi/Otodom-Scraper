@@ -135,9 +135,18 @@ class PropertyDocument(Document):
         :param properties: The properties containing the construction status
         :return: The construction status
         """
-        if properties.get("ConstructionStatus") is None:
-            return None
-        return ConstructionStatus(properties["ConstructionStatus"])
+        status_list = properties.get("Construction_status")
+
+        if status_list and isinstance(status_list, list) and len(status_list) > 0:
+            # Take the first string ("ready_to_use") and turn it into an Enum
+            raw_val = status_list[0]
+            try:
+                return ConstructionStatus(raw_val)
+            except ValueError:
+                # Useful for debugging new Otodom statuses
+                print(f"DEBUG: Found unknown status: {raw_val}")
+                return None
+        return None
 
     @staticmethod
     def extract_building(properties: dict) -> BuildingDocument | None:
