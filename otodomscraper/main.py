@@ -4,6 +4,7 @@ import random
 import re
 import sys
 import datetime
+import logging
 
 
 class TerminalLogger:
@@ -27,6 +28,14 @@ class TerminalLogger:
 log_filename = datetime.datetime.now().strftime("scraper_log_%Y-%m-%d_%H-%M-%S.txt")
 sys.stdout = TerminalLogger(log_filename, sys.stdout)
 sys.stderr = TerminalLogger(log_filename, sys.stderr)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    stream=sys.stdout
+
+)
+
 
 
 def scrape_dynamic_chunk(crawler, current_min, current_max, master_list):
