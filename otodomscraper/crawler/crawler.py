@@ -119,7 +119,7 @@ class Crawler:
                     if "paginatedUnits" in ad_data:
                         listing_data = ad_data["paginatedUnits"]
                         page_count = listing_data["pagination"]["totalPages"]
-                        item_count = listing_data["pagination"].get("totalResult", 0)
+                        item_count = listing_data["pagination"].get("totalResults", 0)
                     else:
                         page_count = data["props"]["pageProps"]["tracking"]["listing"]["page_count"]
                         listing_data = data["props"]["pageProps"]["tracking"]["listing"]
@@ -302,44 +302,44 @@ class Crawler:
 
         raise DataExtractionError(url=url)
 
-    def process_investment(self, investment_url: str,):
+    def process_investment(self, investment_url: str):
         """
         Runs a nested crawl for an investment by reusing search-result logic.
         """
-        # 1. Backup current search state so we can return to it later
         original_base_url = self.settings.base_url
         original_params = self.params
 
         try:
-            # 2. Re-configure the crawler to focus only on this investment
-            # We strip existing params so count_pages() doesn't add price filters etc.
             self.settings.base_url = investment_url
             self.params = {}
 
-            # 3. REUSE: count_pages()
-            # This will look at the investment page and find the total pages of units
+            # Reuse count_pages to find out how many pages of units exist
             total_pages, _ = self.count_pages()
             print(f"[INVESTMENT] Scaling out to {total_pages} pages of units...")
 
             for page in range(1, total_pages + 1):
+                # Fetch unit items from the current investment page
                 units = self.extract_listings_from_page(page, override_url=investment_url)
+
                 formatted_units = []
                 for u in units:
                     if u.get("url"):
-                        u["full_url"] = f"{self.settings.base_url}{u['url']}" if u['url'].startswith('/') else u['url']
+                        # FIX: Use Constans.DEFAULT_URL to build the correct link
+                        path = u['url']
+                        full_url = f"{Constans.DEFAULT_URL}{path}" if path.startswith('/') else path
+                        u["full_url"] = full_url
                         formatted_units.append(u)
+
+                # FIX: Process the NEWLY found units, not the session history
                 if formatted_units:
+                    print(f"  -> Page {page}: Processing {len(formatted_units)} units...")
                     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
                         list(executor.map(self.extract_listing_data, formatted_units))
 
-
-                # Anti-bot delay between pages of the same investment
                 import time
                 time.sleep(random.uniform(3.0, 7.0))
 
         finally:
-            # 7. CRITICAL: Restore original search parameters
-            # This ensures the main crawler continues where it left off
             self.settings.base_url = original_base_url
             self.params = original_params
             print(f"[INVESTMENT] Completed sub-crawl. Returning to main search.")
