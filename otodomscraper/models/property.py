@@ -296,7 +296,7 @@ class PropertyDocument(Document):
     @staticmethod
     def extract_description(properties: dict) -> str | None:
         """Extracts the property description and cleans HTML tags/newlines."""
-        ad_data = properties.get("props", {}).get("pageProps", {})
+        ad_data = properties.get("props", {}).get("pageProps", {}).get("ad", {})
         desc = ad_data.get("description")
 
         # Only process if we actually have a string
