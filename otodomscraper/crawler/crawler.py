@@ -312,8 +312,8 @@ class Crawler:
 
     def process_investment_queue(self):
         """
-        Processes all queued investments after the main search chunk is complete.
-        Extracts unit data directly from the investment's JSON to save HTTP requests.
+        Processes all queued investments. Extracts Page 1 from the HTML JSON,
+        and remaining pages via the GraphQL API to bypass DataDome HTML limits.
         """
         if not self.investments_queue:
             return
@@ -328,15 +328,31 @@ class Crawler:
                 print(f"[INVESTMENT] Scraping: {investment_url}")
                 self.params = {}
 
-                # Use override_url to count pages for this specific investment
+                # 1. Count pages (this loads the HTML for Page 1)
                 total_pages, _ = self.count_pages(override_url=investment_url)
+                print(f"  -> Found {total_pages or 1} pages of units.")
 
-                for page in range(1, (total_pages or 1) + 1):
-                    # This returns the pure JSON dictionaries of the units
-                    units_data = self.extract_listings_from_page(page, override_url=investment_url)
+                # 2. Extract Page 1 units directly from the HTML
+                units_data_page_1 = self.extract_listings_from_page(1, override_url=investment_url)
+                for unit_dict in units_data_page_1:
+                    self.extract_unit_from_json(unit_dict, investment_url)
 
-                    for unit_dict in units_data:
-                        self.extract_unit_from_json(unit_dict, investment_url)
+                # 3. If there are more pages, fetch them using GraphQL!
+                if total_pages and total_pages > 1:
+                    import re
+                    # Extract the slug (e.g. 'look-up-house-ID4ui33' from the URL)
+                    slug_match = re.search(r'/(?:oferta|inwestycja)/([^/?]+)', investment_url)
+
+                    if slug_match:
+                        slug = slug_match.group(1)
+                        print(f"  -> Using GraphQL to fetch pages 2 through {total_pages}...")
+
+                        for page in range(2, total_pages + 1):
+                            graphql_units = self.fetch_units_from_graphql(slug, page)
+                            for unit_dict in graphql_units:
+                                self.extract_unit_from_json(unit_dict, investment_url)
+                    else:
+                        logger.warning(f"Could not extract slug from {investment_url} to use GraphQL.")
 
                 # Remove from queue once successfully processed
                 self.investments_queue.remove(investment_url)
@@ -347,10 +363,103 @@ class Crawler:
             except Exception as e:
                 logger.error(f"[INVESTMENT] Failed to process {investment_url}: {e}")
 
-        # Restore original crawler state
+            # Restore original crawler state
         self.settings.base_url = original_base_url
         self.params = original_params
         print(f"[INVESTMENT] Finished processing queue.\n")
+
+    def fetch_units_from_graphql(self, investment_slug: str, page: int) -> list:
+        """
+        Fetches a specific page of units for a developer investment using Otodom's GraphQL API.
+        """
+        import time, random
+        url = "https://www.otodom.pl/graphql"
+
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "*/*",
+            "Origin": "https://www.otodom.pl",
+            "Referer": f"https://www.otodom.pl/pl/inwestycja/{investment_slug}",
+        }
+
+        payload = {
+            "operationName": "paginatedUnits",
+            "variables": {
+                "developmentSlug": investment_slug,
+                "page": page,
+                "limit": 10,
+                "roomsNumber": None,
+                "floorNumber": None,
+                "price": None,
+                "area": None
+            },
+            "query": """query paginatedUnits($developmentSlug: String!, $page: Int!, $limit: Int, $roomsNumber: [String!], $floorNumber: [String!], $price: [Float!], $area: [Float!], $withCounter: Boolean = false) {
+    development(slug: $developmentSlug) {
+    id
+    paginatedUnits(
+        page: $page
+        limit: $limit
+        roomsNumber: $roomsNumber
+        floorNumber: $floorNumber
+        price: $price
+        area: $area
+        withCounter: $withCounter
+    ) {
+        items {
+        id
+        title
+        url
+        target {
+            Area
+            Rooms_num
+            Price
+            Price_per_m
+            ProperType
+            OfferType
+            City
+            Province
+        }
+        location {
+            coordinates {
+            latitude
+            longitude
+            }
+            address {
+            city { name code }
+            province { name code }
+            district { name code }
+            county { name code }
+            street { name code }
+            }
+        }
+        }
+    }
+    }
+}"""
+        }
+
+        try:
+            # Add a small delay between GraphQL requests to mimic human clicking
+            time.sleep(random.uniform(2.5, 4.5))
+
+            # Send the request using your curl_cffi session (which handles TLS fingerprinting)
+            response = self.session.post(url, headers=headers, json=payload, timeout=15)
+
+            if response.status_code == 200:
+                data = response.json()
+                dev_data = data.get("data", {}).get("development", {})
+                if dev_data and "paginatedUnits" in dev_data:
+                    items = dev_data["paginatedUnits"].get("items", [])
+                    print(f"     GraphQL: Page {page} retrieved {len(items)} units.")
+                    return items
+            else:
+                logger.warning(
+                    f"GraphQL returned status {response.status_code} for {investment_slug} page {page}. Blocked?")
+
+        except Exception as e:
+            logger.error(f"GraphQL request failed for {investment_slug}: {e}")
+
+        return []
 
     def extract_unit_from_json(self, unit_dict: dict, investment_url: str):
         """
