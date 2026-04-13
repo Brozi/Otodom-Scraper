@@ -367,17 +367,21 @@ class Crawler:
                     self.extract_unit_from_json(unit_dict, investment_url)
 
                 # 3. If there are more pages, fetch them using Next.js Data API
+                # 3. If there are more pages, fetch them using Next.js Data API
                 if total_pages > 1 and build_id:
                     from urllib.parse import urlparse
                     parsed_url = urlparse(investment_url)
-                    path = parsed_url.path  # e.g., "/pl/oferta/piasta-towers-ID4uatL"
 
-                    # Next.js requires the query params (like "id") that were parsed on the page
+                    # Otodom's Next.js router strictly uses /inwestycja/ for these API calls!
+                    path = parsed_url.path.replace("/oferta/", "/inwestycja/")
+
+                    # Next.js requires the query params that were parsed on the page
                     base_params = data.get("query", {})
 
                     print(f"  -> Using Next.js Data API (build: {build_id}) for pages 2-{total_pages}...")
 
                     for page in range(2, total_pages + 1):
+                        import time, random
                         time.sleep(random.uniform(2.5, 4.5))
 
                         # Next.js API format: /_next/data/{buildId}/path/to/page.json
@@ -386,7 +390,6 @@ class Crawler:
                         params = base_params.copy()
                         params["page"] = page
 
-                        # Add Next.js specific headers to ensure it returns JSON
                         headers = {
                             "x-nextjs-data": "1",
                             "Accept": "*/*",
@@ -398,9 +401,15 @@ class Crawler:
 
                         if next_res.status_code == 200:
                             next_data = next_res.json()
+
+                            # Debug: If it still fails, print what Next.js actually sent back
+                            if "pageProps" not in next_data:
+                                print(f"DEBUG: Unexpected Next.js response keys: {next_data.keys()}")
+
                             next_items = next_data.get("pageProps", {}).get("ad", {}).get("paginatedUnits", {}).get(
                                 "items", [])
                             print(f"     Next.js API: Page {page} retrieved {len(next_items)} units.")
+
                             for unit_dict in next_items:
                                 self.extract_unit_from_json(unit_dict, investment_url)
                         else:
