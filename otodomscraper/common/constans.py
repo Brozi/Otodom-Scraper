@@ -91,6 +91,7 @@ class Constans:
         "market_type",
         "offered_by",
         "otodom_id",
+        "photos",
         "price",
         "price_per_meter",
         "promoted",

@@ -45,6 +45,7 @@ class PropertyDocument(Document):
     extras = StringField()
     security_types = StringField()
     description = StringField(db_field="description")
+    photos = StringField(db_field="photo_urls")
     rent = IntField()
     property_type = EnumField(PropertyType, required=True)
     market_type = EnumField(MarketType, required=True)
@@ -92,6 +93,7 @@ class PropertyDocument(Document):
             listing_properties["target"]
         )
         self.description = self.extract_description(listing_information)
+        self.photos = self.extract_photos(listing_information)
         self.building = self.extract_building(listing_properties["target"])
         self.offered_by = self.extract_offered_by(listing_properties)
 
@@ -307,4 +309,23 @@ class PropertyDocument(Document):
             # Replace newlines/carriage returns with spaces to keep CSV rows intact
             return clean_desc.replace('\n', ' ').replace('\r', ' ').strip()
 
+        return None
+
+    @staticmethod
+    def extract_photos(listing_information: dict) -> str | None:
+        """Extracts the highest resolution image URLs and joins them into a string."""
+        try:
+            images = listing_information.get("props", {}).get("pageProps", {}).get("ad", {}).get("images", [])
+            photo_urls = []
+
+            for img in images:
+                # Otodom usually stores the best resolution under 'large'
+                url = img.get("large") or img.get("medium")
+                if url:
+                    photo_urls.append(url)
+
+            if photo_urls:
+                return ", ".join(photo_urls)
+        except Exception as e:
+            pass
         return None
