@@ -313,7 +313,7 @@ class Crawler:
     def process_investment_queue(self):
         """
         Processes all queued investments. Extracts Page 1 from the HTML JSON,
-        and remaining pages via the GraphQL API to bypass DataDome HTML limits.
+        and remaining pages via the Next.js Data API to bypass 404s.
         """
         if not self.investments_queue:
             return
@@ -326,140 +326,102 @@ class Crawler:
         for investment_url in list(self.investments_queue):
             try:
                 print(f"[INVESTMENT] Scraping: {investment_url}")
-                self.params = {}
+                import time, random
+                time.sleep(random.uniform(2.0, 4.0))
 
-                # 1. Count pages (this loads the HTML for Page 1)
-                total_pages, _ = self.count_pages(override_url=investment_url)
-                print(f"  -> Found {total_pages or 1} pages of units.")
+                # 1. Fetch the HTML of the investment page directly
+                response = self.session.get(investment_url, timeout=15)
+                if response.status_code in [403, 405, 429]:
+                    cooldown = random.uniform(600.0, 660.0)
+                    logger.warning(f"DATADOME BLOCK on investment {investment_url}. Sleeping {cooldown / 60:.2f}m...")
+                    time.sleep(cooldown)
+                    self.session = requests.Session(impersonate="chrome120")
+                    continue
 
-                # 2. Extract Page 1 units directly from the HTML
-                units_data_page_1 = self.extract_listings_from_page(1, override_url=investment_url)
-                for unit_dict in units_data_page_1:
+                html = response.text
+
+                import re, json
+                match = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', html, re.DOTALL)
+                if not match:
+                    logger.warning(f"Could not find __NEXT_DATA__ on {investment_url}")
+                    self.investments_queue.remove(investment_url)
+                    continue
+
+                data = json.loads(match.group(1))
+                build_id = data.get("buildId")
+
+                ad_data = data.get("props", {}).get("pageProps", {}).get("ad", {})
+                if "paginatedUnits" not in ad_data:
+                    logger.warning(f"No paginatedUnits found for {investment_url}. Skipping.")
+                    self.investments_queue.remove(investment_url)
+                    continue
+
+                paginated_units = ad_data["paginatedUnits"]
+                total_pages = paginated_units.get("pagination", {}).get("totalPages", 1)
+                items_page_1 = paginated_units.get("items", [])
+
+                print(f"  -> Found {total_pages} pages of units.")
+
+                # 2. Extract Page 1 units
+                for unit_dict in items_page_1:
                     self.extract_unit_from_json(unit_dict, investment_url)
 
-                # 3. If there are more pages, fetch them using GraphQL!
-                if total_pages and total_pages > 1:
-                    import re
-                    # Extract the slug (e.g. 'look-up-house-ID4ui33' from the URL)
-                    slug_match = re.search(r'/(?:oferta|inwestycja)/([^/?]+)', investment_url)
+                # 3. If there are more pages, fetch them using Next.js Data API
+                if total_pages > 1 and build_id:
+                    from urllib.parse import urlparse
+                    parsed_url = urlparse(investment_url)
+                    path = parsed_url.path  # e.g., "/pl/oferta/piasta-towers-ID4uatL"
 
-                    if slug_match:
-                        slug = slug_match.group(1)
-                        print(f"  -> Using GraphQL to fetch pages 2 through {total_pages}...")
+                    # Next.js requires the query params (like "id") that were parsed on the page
+                    base_params = data.get("query", {})
 
-                        for page in range(2, total_pages + 1):
-                            graphql_units = self.fetch_units_from_graphql(slug, page)
-                            for unit_dict in graphql_units:
+                    print(f"  -> Using Next.js Data API (build: {build_id}) for pages 2-{total_pages}...")
+
+                    for page in range(2, total_pages + 1):
+                        time.sleep(random.uniform(2.5, 4.5))
+
+                        # Next.js API format: /_next/data/{buildId}/path/to/page.json
+                        next_url = f"https://www.otodom.pl/_next/data/{build_id}{path}.json"
+
+                        params = base_params.copy()
+                        params["page"] = page
+
+                        # Add Next.js specific headers to ensure it returns JSON
+                        headers = {
+                            "x-nextjs-data": "1",
+                            "Accept": "*/*",
+                            "Referer": investment_url
+                        }
+
+                        logger.info(f"Fetching Next.js API page {page} for {investment_url}")
+                        next_res = self.session.get(next_url, params=params, headers=headers, timeout=15)
+
+                        if next_res.status_code == 200:
+                            next_data = next_res.json()
+                            next_items = next_data.get("pageProps", {}).get("ad", {}).get("paginatedUnits", {}).get(
+                                "items", [])
+                            print(f"     Next.js API: Page {page} retrieved {len(next_items)} units.")
+                            for unit_dict in next_items:
                                 self.extract_unit_from_json(unit_dict, investment_url)
-                    else:
-                        logger.warning(f"Could not extract slug from {investment_url} to use GraphQL.")
+                        else:
+                            logger.warning(f"Next.js API returned status {next_res.status_code} for page {page}.")
+                            if next_res.status_code in [403, 405, 429]:
+                                cooldown = random.uniform(600.0, 660.0)
+                                logger.warning(f"DATADOME BLOCK on API. Sleeping {cooldown / 60:.2f}m...")
+                                time.sleep(cooldown)
+                                self.session = requests.Session(impersonate="chrome120")
 
                 # Remove from queue once successfully processed
                 self.investments_queue.remove(investment_url)
-
-                import time, random
                 time.sleep(random.uniform(3.0, 7.0))
 
             except Exception as e:
                 logger.error(f"[INVESTMENT] Failed to process {investment_url}: {e}")
 
-            # Restore original crawler state
+        # Restore original crawler state
         self.settings.base_url = original_base_url
         self.params = original_params
         print(f"[INVESTMENT] Finished processing queue.\n")
-
-    def fetch_units_from_graphql(self, investment_slug: str, page: int) -> list:
-        """
-        Fetches a specific page of units for a developer investment using Otodom's GraphQL API.
-        """
-        import time, random
-        url = "https://www.otodom.pl/graphql"
-
-        headers = {
-            "Content-Type": "application/json",
-            "Accept": "*/*",
-            "Origin": "https://www.otodom.pl",
-            "Referer": f"https://www.otodom.pl/pl/inwestycja/{investment_slug}",
-        }
-
-        payload = {
-            "operationName": "paginatedUnits",
-            "variables": {
-                "developmentSlug": investment_slug,
-                "page": page,
-                "limit": 10,
-                "roomsNumber": None,
-                "floorNumber": None,
-                "price": None,
-                "area": None
-            },
-            "query": """query paginatedUnits($developmentSlug: String!, $page: Int!, $limit: Int, $roomsNumber: [String!], $floorNumber: [String!], $price: [Float!], $area: [Float!], $withCounter: Boolean = false) {
-    development(slug: $developmentSlug) {
-    id
-    paginatedUnits(
-        page: $page
-        limit: $limit
-        roomsNumber: $roomsNumber
-        floorNumber: $floorNumber
-        price: $price
-        area: $area
-        withCounter: $withCounter
-    ) {
-        items {
-        id
-        title
-        url
-        target {
-            Area
-            Rooms_num
-            Price
-            Price_per_m
-            ProperType
-            OfferType
-            City
-            Province
-        }
-        location {
-            coordinates {
-            latitude
-            longitude
-            }
-            address {
-            city { name code }
-            province { name code }
-            district { name code }
-            county { name code }
-            street { name code }
-            }
-        }
-        }
-    }
-    }
-}"""
-        }
-
-        try:
-            # Add a small delay between GraphQL requests to mimic human clicking
-            time.sleep(random.uniform(2.5, 4.5))
-
-            # Send the request using your curl_cffi session (which handles TLS fingerprinting)
-            response = self.session.post(url, headers=headers, json=payload, timeout=15)
-
-            if response.status_code == 200:
-                data = response.json()
-                dev_data = data.get("data", {}).get("development", {})
-                if dev_data and "paginatedUnits" in dev_data:
-                    items = dev_data["paginatedUnits"].get("items", [])
-                    print(f"     GraphQL: Page {page} retrieved {len(items)} units.")
-                    return items
-            else:
-                logger.warning(
-                    f"GraphQL returned status {response.status_code} for {investment_slug} page {page}. Blocked?")
-
-        except Exception as e:
-            logger.error(f"GraphQL request failed for {investment_slug}: {e}")
-
-        return []
 
     def extract_unit_from_json(self, unit_dict: dict, investment_url: str):
         """
