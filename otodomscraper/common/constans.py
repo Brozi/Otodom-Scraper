@@ -115,7 +115,7 @@ PROPERTY_TYPE_MAP = {
     "mieszkanie": PropertyType.FLAT,
     "kawalerka": PropertyType.STUDIO,
     "dom": PropertyType.HOUSE,
-    "inwestycja": PropertyType.INVESTMENT,
+    "inwestycje": PropertyType.INVESTMENT,
     "pokoj": PropertyType.ROOM,
     "dzialka": PropertyType.PLOT,
     "lokal": PropertyType.VENUE,
