@@ -49,7 +49,7 @@ class PropertyDocument(Document):
     market_type = EnumField(MarketType, required=True)
     auction_type = EnumField(AuctionType, required=True)
     localization = EmbeddedDocumentField(LocalizationDocument, required=True)
-    construction_status = EnumField(ConstructionStatus, required=True)
+    construction_status = StringField(ConstructionStatus, required=True)
     building = EmbeddedDocumentField(BuildingDocument)
     offered_by = EnumField(OfferedBy, required=True)
     estate_agency = ReferenceField("AgencyDocument", reverse_delete_rule=NULLIFY)
@@ -126,7 +126,7 @@ class PropertyDocument(Document):
         return localization
 
     @staticmethod
-    def extract_construction_status(properties: dict) -> ConstructionStatus | None:
+    def extract_construction_status(properties: dict) -> ConstructionStatus | str:
         """
         Determines the construction status from the properties.
 
@@ -134,7 +134,7 @@ class PropertyDocument(Document):
         :return: The construction status
         """
         if properties.get("ConstructionStatus") is None:
-            return None
+            return 'None'
         return ConstructionStatus(properties["ConstructionStatus"])
 
     @staticmethod
