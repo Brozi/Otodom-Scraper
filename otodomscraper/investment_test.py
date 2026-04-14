@@ -15,9 +15,9 @@ def run_test():
     crawler = Crawler()
 
     # 2. Hardcode an investment URL you know has multiple pages
-    test_url = "https://www.otodom.pl/pl/oferta/kombinat-mieszkan-ID4znLZ"
+    test_url = "https://www.otodom.pl/pl/oferta/piasta-towers-ID4uatL"
     # Or test the one that was failing:
-    # test_url = "https://www.otodom.pl/pl/oferta/piasta-towers-ID4uatL"
+    # test_url = "https://www.otodom.pl/pl/oferta/kombinat-mieszkan-ID4znLZ"
 
     # 3. Add it to the queue
     crawler.investments_queue.add(test_url)
