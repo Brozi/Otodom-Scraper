@@ -361,6 +361,7 @@ class Crawler:
                 items_page_1 = paginated_units.get("items", [])
 
                 print(f"  -> Found {total_pages} pages of units.")
+                dynamic_page_size = len(items_page_1) if items_page_1 else 6
 
                 # 2. Extract Page 1 units
                 for unit_dict in items_page_1:
@@ -383,9 +384,9 @@ class Crawler:
                         variables = {
                             "id": int(investment_id),
                             "lookup": {
-                                "filters": {"numberOfRooms": []},
+                                "filters": {},
                                 "page": page,
-                                "pageSize": 24,  # Otodom defaults to 24 units per page here
+                                "pageSize": dynamic_page_size,  # <--- Uses the exact size from Page 1
                                 "sort": {"by": "Price", "direction": "asc"},
                                 "withFacets": True
                             }
