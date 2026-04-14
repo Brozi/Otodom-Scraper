@@ -440,6 +440,15 @@ class Crawler:
                                 # 1. Print GraphQL errors if the server rejected our request
                                 if "errors" in next_data:
                                     logger.error(f"GraphQL Errors on page {page}: {next_data['errors']}")
+                                    # --- APQ CACHE MISS RETRY LOGIC ---
+                                    error_code = next_data["errors"][0].get("extensions", {}).get("code")
+                                    if error_code == "PERSISTED_QUERY_NOT_FOUND":
+                                        logger.warning(
+                                            "Otodom server forgot the GraphQL hash. Retrying in 10 seconds...")
+                                        import time
+                                        time.sleep(10)
+                                        continue  # Loops back to retry the EXACT SAME page number
+                                    # ----------------------------------
 
                                 # 2. Safely extract data (using 'or {}' handles null/None values)
                                 data_block = next_data.get("data") or {}
