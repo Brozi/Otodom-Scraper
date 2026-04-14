@@ -508,6 +508,15 @@ class Crawler:
             property_.price = target_data.get('Price')
             property_.price_per_meter = target_data.get('Price_per_m')
 
+            # --- EXTRAS & SECURITY ---
+            extras_list = target_data.get("Extras_types", [])
+            if extras_list:
+                property_.extras = ", ".join(extras_list)
+
+            security_list = target_data.get("Security_types", [])
+            if security_list:
+                property_.security_types = ", ".join(security_list)
+
             floor_list = target_data.get("Floor_no", [])
             if floor_list:
                 property_.floor = str(floor_list[0]).replace("floor_", "").replace("ground_floor", "0")
