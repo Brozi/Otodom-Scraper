@@ -432,7 +432,7 @@ class Crawler:
                                 saved_count = 0
                                 for unit_dict in next_items:
                                     # Your existing extract_unit_from_json takes (unit_dict, investment_url)
-                                    was_saved = self.extract_unit_from_json(unit_dict, investment_url)
+                                    was_saved = self.extract_unit_from_json(unit_dict, investment_url, main_location)
                                     if was_saved:
                                         saved_count += 1
 
