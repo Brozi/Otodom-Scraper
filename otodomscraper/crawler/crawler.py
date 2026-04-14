@@ -364,6 +364,8 @@ class Crawler:
                 items_page_1 = paginated_units.get("items", [])
 
                 print(f"  -> Found {total_pages} pages of units.")
+                # Automatically determine the page size based on Page 1
+                dynamic_page_size = len(items_page_1) if items_page_1 else 6
 
                 # Pass main_location to Page 1 units
                 for unit_dict in items_page_1:
