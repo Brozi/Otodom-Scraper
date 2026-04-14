@@ -475,6 +475,31 @@ class Crawler:
             property_.auction_type = AuctionType.SALE
             property_.property_type = PropertyType.FLAT  # Or extract from dict if available
 
+            target_data = unit_dict.get("target", {})
+            status_list = target_data.get("Construction_status")
+            if status_list and isinstance(status_list, list) and len(status_list) > 0:
+                from common.constans import ConstructionStatus
+                try:
+                    property_.construction_status = ConstructionStatus(status_list[0])
+                except ValueError:
+                    pass  # Ignore if it's a new status enum we don't recognize
+
+            # 2. Extract Photos
+            images = unit_dict.get("images", [])
+            photo_urls = []
+            for img in images:
+                # Grab the best available resolution
+                img_url = img.get("large") or img.get("medium") or img.get("small")
+                if img_url:
+                    photo_urls.append(img_url)
+
+            if photo_urls:
+                property_.photos = ", ".join(photo_urls)
+
+            # 3. Description (Usually missing in paginated units, but grab if exists)
+            property_.description = unit_dict.get("description", None)
+
+            # ---> ADD THIS BLOCK <---
             # ---> ADD THIS BLOCK <---
             from models.localization import LocalizationDocument
             loc = LocalizationDocument()
@@ -484,36 +509,27 @@ class Crawler:
             loc.city = self.settings.city
             loc.district = self.settings.district
 
-            # Try to enrich with exact data from the unit's JSON
+            # 1. Try to enrich city/province from the 'target' dictionary
+            target_data = unit_dict.get('target', {})
+
+            if target_data.get('City'):
+                loc.city = target_data.get('City')
+
+            if target_data.get('Province'):
+                loc.province = target_data.get('Province')
+
+            # Note: Otodom rarely provides full street names for individual developer units
+            # in the paginatedUnits list. If they do, they might hide it in an unexpected key.
+            # Usually, all units just inherit the parent building's location.
+
+            # 2. Extract Coordinates from the 'location' dictionary
             location_data = unit_dict.get('location', {})
-            address_data = location_data.get('address', {})
+            coordinates = location_data.get('coordinates', {})
 
-            if address_data:
-                city_dict = address_data.get('city', {})
-                if isinstance(city_dict, dict) and (city_dict.get('code') or city_dict.get('name')):
-                    loc.city = city_dict.get('code', city_dict.get('name'))
-
-                province_dict = address_data.get('province', {})
-                if isinstance(province_dict, dict) and (province_dict.get('code') or province_dict.get('name')):
-                    loc.province = province_dict.get('code', province_dict.get('name'))
-
-                district_dict = address_data.get('district', {})
-                if isinstance(district_dict, dict) and (district_dict.get('code') or district_dict.get('name')):
-                    loc.district = district_dict.get('code', district_dict.get('name'))
-
-                county_dict = address_data.get('county', {})
-                if isinstance(county_dict, dict):
-                    loc.county = county_dict.get('code', county_dict.get('name'))
-
-                street_dict = address_data.get('street', {})
-                if isinstance(street_dict, dict):
-                    loc.street = street_dict.get('name', street_dict.get('code'))
-
-            # Extract coordinates if available
-            map_details = location_data.get('mapDetails', {})
-            if map_details:
-                loc.latitude = float(map_details.get('lat', 0.0))
-                loc.longitude = float(map_details.get('lon', 0.0))
+            if coordinates:
+                # Some JSON formats put it under 'latitude', others 'lat'
+                loc.latitude = float(coordinates.get('latitude', coordinates.get('lat', 0.0)))
+                loc.longitude = float(coordinates.get('longitude', coordinates.get('lon', 0.0)))
 
             property_.localization = loc
 
