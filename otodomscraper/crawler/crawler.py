@@ -443,12 +443,31 @@ class Crawler:
         import datetime
 
         # Generate full URL
-        path = unit_dict.get('url', '')
-        full_url = f"{Constans.DEFAULT_URL}{path}" if path.startswith('/') else path
+        path = unit_dict.get("url", "")
+        full_url = f"{Constans.DEFAULT_URL}{path}" if path.startswith("/") else path
 
-        # Check if it already exists to avoid unnecessary processing
-        otodom_id = unit_dict.get('id')
-        if not otodom_id or PropertyService.get_by_otodom_id(otodom_id):
+        # Robust ID extraction
+        raw_id = (
+                unit_dict.get("id")
+                or unit_dict.get("adId")
+                or unit_dict.get("externalId")
+                or unit_dict.get("target", {}).get("Id")
+        )
+
+        if not raw_id and full_url:
+            # Fallback: use slug tail as stable identifier
+            # e.g. ...-ID4znMg
+            m = re.search(r"(ID[0-9A-Za-z]+)$", full_url)
+            raw_id = m.group(1) if m else None
+
+        if not raw_id:
+            logger.warning(f"Skipping unit with no identifiable ID: {full_url}")
+            return
+
+        otodom_id = str(raw_id)
+
+        if PropertyService.get_by_otodom_id(int(otodom_id)):
+            logger.info(f"Already exists, skipping: {full_url}")
             return
 
         try:
@@ -499,8 +518,6 @@ class Crawler:
             # 3. Description (Usually missing in paginated units, but grab if exists)
             property_.description = unit_dict.get("description", None)
 
-            # ---> ADD THIS BLOCK <---
-            # ---> ADD THIS BLOCK <---
             from models.localization import LocalizationDocument
             loc = LocalizationDocument()
 
