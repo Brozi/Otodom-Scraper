@@ -363,6 +363,15 @@ class Crawler:
                 total_pages = paginated_units.get("pagination", {}).get("totalPages", 1)
                 items_page_1 = paginated_units.get("items", [])
 
+                # --- NEW STEALTH BLOCK CHECK ---
+                if items_page_1 and items_page_1[0].get("target") is None:
+                    logger.warning(f"Stealth block detected on {investment_url}. Sleeping 5 minutes...")
+                    import time
+                    time.sleep(300)
+                    self.session = requests.Session(impersonate="chrome120")
+                    continue  # Skips the rest of the loop, leaving the URL in the queue to try again!
+                # -------------------------------
+
                 print(f"  -> Found {total_pages} pages of units.")
                 # Automatically determine the page size based on Page 1
                 dynamic_page_size = len(items_page_1) if items_page_1 else 6
@@ -378,7 +387,8 @@ class Crawler:
                 if total_pages > 1 and investment_id:
                     print(f"  -> Using APQ Data API for pages 2-{total_pages}...")
 
-                    for page in range(2, total_pages + 1):
+                    page = 2
+                    while page <= total_pages:
                         import time, random
                         import json
 
@@ -436,6 +446,14 @@ class Crawler:
                                 paginated_units = data_block.get("paginatedUnits") or {}
                                 next_items = paginated_units.get("items") or []
 
+                                # --- NEW STEALTH BLOCK CHECK ---
+                                if next_items and next_items[0].get("target") is None:
+                                    logger.warning(f"Stealth API block on page {page}. Sleeping 5 minutes...")
+                                    time.sleep(300)
+                                    self.session = requests.Session(impersonate="chrome120")
+                                    continue  # Loops back to retry the EXACT SAME page number
+                                # -------------------------------
+
                                 print(f"     API: Page {page} retrieved {len(next_items)} units.")
 
                                 saved_count = 0
@@ -445,9 +463,11 @@ class Crawler:
                                     if was_saved:
                                         saved_count += 1
 
-                                print(f" Page {page}: saved {saved_count}/{len(next_items)} units")
+                                        print(f" Page {page}: saved {saved_count}/{len(next_items)} units")
+                                        page += 1  # SUCCESS: move to the next page
                             except Exception as e:
-                                logger.error(f"Error parsing API JSON on page {page}: {e}")
+                                    logger.error(f"Error parsing API JSON on page {page}: {e}")
+                                    page += 1  # Skip broken page to avoid infinite loop
                         else:
                             logger.warning(f"API returned status {next_res.status_code} for page {page}.")
                             if next_res.status_code in [403, 405, 429]:
@@ -455,6 +475,8 @@ class Crawler:
                                 logger.warning(f"DATADOME BLOCK on API. Sleeping {cooldown / 60:.2f}m...")
                                 time.sleep(cooldown)
                                 self.session = requests.Session(impersonate="chrome120")
+                                continue  # Retry the EXACT SAME page number
+                            page += 1
 
                 # Remove from queue once successfully processed
                 self.investments_queue.remove(investment_url)
