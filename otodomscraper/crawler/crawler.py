@@ -481,7 +481,6 @@ class Crawler:
 
         if not raw_id and full_url:
             # Fallback: use slug tail as stable identifier
-            # e.g. ...-ID4znMg
             m = re.search(r"(ID[0-9A-Za-z]+)$", full_url)
             raw_id = m.group(1) if m else None
 
@@ -501,38 +500,58 @@ class Crawler:
             property_.otodom_id = otodom_id
             property_.created_at = datetime.datetime.now()
             property_.title = unit_dict.get('title', 'Developer Unit')
-            property_.area = float(unit_dict.get('areaInSquareMeters', 0.0))
-            property_.rooms = str(unit_dict.get('roomsNumber', ''))
 
-            # Map pricing
-            price_info = unit_dict.get('price', {})
-            if isinstance(price_info, dict):
-                property_.price = price_info.get('value')
-            else:
-                property_.price = price_info
+            # --- TARGET DICT EXTRACTION ---
+            target_data = unit_dict.get("target", {})
 
-            property_.price_per_meter = unit_dict.get('pricePerSquareMeter', {}).get('value')
+            area_val = target_data.get('Area', 0.0)
+            property_.area = float(area_val) if area_val else 0.0
 
-            # Static defaults for developer units
+            rooms_list = target_data.get('Rooms_num', [])
+            property_.rooms = str(rooms_list[0]) if rooms_list else ''
+
+            property_.price = target_data.get('Price')
+            property_.price_per_meter = target_data.get('Price_per_m')
+
+            floor_list = target_data.get("Floor_no", [])
+            if floor_list:
+                # Usually format is "floor_5" or "ground_floor"
+                floor_str = str(floor_list[0]).replace("floor_", "").replace("ground_floor", "0")
+                property_.floor = floor_str
+
+            # --- BUILDING EXTRACTION ---
+            from models.building import BuildingDocument
+            building = BuildingDocument()
+            building.build_year = target_data.get("Build_year")
+
+            b_types = target_data.get("Building_type", [])
+            building.building_type = b_types[0] if b_types else None
+
+            building.floors_num = target_data.get("Building_floors_num")
+
+            b_ownership = target_data.get("Building_ownership", [])
+            building.ownership = b_ownership[0] if b_ownership else None
+
+            property_.building = building
+
+            # --- STATUS & STATIC DEFAULTS ---
             property_.offered_by = OfferedBy.DEVELOPER_UNIT
             property_.market_type = MarketType.PRIMARY
             property_.auction_type = AuctionType.SALE
-            property_.property_type = PropertyType.FLAT  # Or extract from dict if available
+            property_.property_type = PropertyType.FLAT
 
-            target_data = unit_dict.get("target", {})
             status_list = target_data.get("Construction_status")
             if status_list and isinstance(status_list, list) and len(status_list) > 0:
                 from common.constans import ConstructionStatus
                 try:
                     property_.construction_status = ConstructionStatus(status_list[0])
                 except ValueError:
-                    pass  # Ignore if it's a new status enum we don't recognize
+                    pass
 
-            # 2. Extract Photos
+                    # --- PHOTOS ---
             images = unit_dict.get("images", [])
             photo_urls = []
             for img in images:
-                # Grab the best available resolution
                 img_url = img.get("large") or img.get("medium") or img.get("small")
                 if img_url:
                     photo_urls.append(img_url)
@@ -540,36 +559,22 @@ class Crawler:
             if photo_urls:
                 property_.photos = ", ".join(photo_urls)
 
-            # 3. Description (Usually missing in paginated units, but grab if exists)
-            property_.description = unit_dict.get("description", None)
+            # --- DESCRIPTION ---
+            # Otodom paginated API does not return descriptions.
+            property_.description = unit_dict.get("description", "Brak opisu (oferta deweloperska).")
 
+            # --- LOCALIZATION ---
             from models.localization import LocalizationDocument
             loc = LocalizationDocument()
 
-            # Start with guaranteed fallbacks so MongoDB never crashes
-            loc.province = self.settings.province
-            loc.city = self.settings.city
+            loc.province = target_data.get('Province', self.settings.province)
+            loc.city = target_data.get('City', self.settings.city)
+            # Fallback to general search setting since district is rarely in the target dict
             loc.district = self.settings.district
 
-            # 1. Try to enrich city/province from the 'target' dictionary
-            target_data = unit_dict.get('target', {})
-
-            if target_data.get('City'):
-                loc.city = target_data.get('City')
-
-            if target_data.get('Province'):
-                loc.province = target_data.get('Province')
-
-            # Note: Otodom rarely provides full street names for individual developer units
-            # in the paginatedUnits list. If they do, they might hide it in an unexpected key.
-            # Usually, all units just inherit the parent building's location.
-
-            # 2. Extract Coordinates from the 'location' dictionary
             location_data = unit_dict.get('location', {})
             coordinates = location_data.get('coordinates', {})
-
             if coordinates:
-                # Some JSON formats put it under 'latitude', others 'lat'
                 loc.latitude = float(coordinates.get('latitude', coordinates.get('lat', 0.0)))
                 loc.longitude = float(coordinates.get('longitude', coordinates.get('lon', 0.0)))
 
