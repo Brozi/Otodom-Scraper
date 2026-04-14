@@ -422,8 +422,7 @@ class Crawler:
                             try:
                                 next_data = next_res.json()
                                 # The GraphQL response is nested under data -> ad -> paginatedUnits -> items
-                                next_items = next_data.get("data", {}).get("ad", {}).get("paginatedUnits", {}).get(
-                                    "items", [])
+                                next_items = next_data.get("data", {}).get("paginatedUnits", {}).get("items", [])
 
                                 print(f"     API: Page {page} retrieved {len(next_items)} units.")
 
