@@ -366,59 +366,79 @@ class Crawler:
                 for unit_dict in items_page_1:
                     self.extract_unit_from_json(unit_dict, investment_url)
 
-                # 3. If there are more pages, fetch them using Next.js Data API
-                # 3. If there are more pages, fetch them using Next.js Data API
-                if total_pages > 1 and build_id:
-                    from urllib.parse import urlparse
-                    parsed_url = urlparse(investment_url)
+                # 3. If there are more pages, fetch them using the Apollo Persisted Query API
+                # Note: We don't need build_id anymore, just the investment_id (ad_data['id'])
+                investment_id = ad_data.get("id")
 
-                    # Otodom's Next.js router strictly uses /inwestycja/ for these API calls!
-                    path = parsed_url.path.replace("/oferta/", "/inwestycja/")
-
-                    # Next.js requires the query params that were parsed on the page
-                    base_params = data.get("query", {})
-
-                    print(f"  -> Using Next.js Data API (build: {build_id}) for pages 2-{total_pages}...")
+                if total_pages > 1 and investment_id:
+                    print(f"  -> Using APQ Data API for pages 2-{total_pages}...")
 
                     for page in range(2, total_pages + 1):
                         import time, random
+                        import json
+
                         time.sleep(random.uniform(2.5, 4.5))
 
-                        # Next.js API format: /_next/data/{buildId}/path/to/page.json
-                        next_url = f"https://www.otodom.pl/_next/data/{build_id}{path}.json"
-
-                        params = base_params.copy()
-                        params["page"] = page
-
-                        headers = {
-                            "x-nextjs-data": "1",
-                            "Accept": "*/*",
-                            "Referer": investment_url
+                        # Build the exact variables JSON required by their server
+                        variables = {
+                            "id": int(investment_id),
+                            "lookup": {
+                                "filters": {"numberOfRooms": []},
+                                "page": page,
+                                "pageSize": 24,  # Otodom defaults to 24 units per page here
+                                "sort": {"by": "Price", "direction": "asc"},
+                                "withFacets": True
+                            }
                         }
 
-                        logger.info(f"Fetching Next.js API page {page} for {investment_url}")
-                        next_res = self.session.get(next_url, params=params, headers=headers, timeout=15)
+                        # APQ Hash matching "PaginatedInvestmentUnits"
+                        extensions = {
+                            "persistedQuery": {
+                                "sha256Hash": "ddc9f328a32057395caf18ef667d3ee4242ea57e73481cc8a56ee9618d0c2b31",
+                                "version": 1
+                            }
+                        }
+
+                        params = {
+                            "operationName": "PaginatedInvestmentUnits",
+                            "variables": json.dumps(variables, separators=(',', ':')),
+                            "extensions": json.dumps(extensions, separators=(',', ':'))
+                        }
+
+                        headers = {
+                            "Accept": "*/*",
+                            "Referer": investment_url,
+                        }
+
+                        logger.info(f"Fetching API page {page} for {investment_url}")
+                        next_res = self.session.get(
+                            f"{self.settings.base_url}/api/query",
+                            params=params,
+                            headers=headers,
+                            timeout=15
+                        )
 
                         if next_res.status_code == 200:
-                            next_data = next_res.json()
+                            try:
+                                next_data = next_res.json()
+                                # The GraphQL response is nested under data -> ad -> paginatedUnits -> items
+                                next_items = next_data.get("data", {}).get("ad", {}).get("paginatedUnits", {}).get(
+                                    "items", [])
 
-                            # Debug: If it still fails, print what Next.js actually sent back
-                            if "pageProps" not in next_data:
-                                print(f"DEBUG: Unexpected Next.js response keys: {next_data.keys()}")
+                                print(f"     API: Page {page} retrieved {len(next_items)} units.")
 
-                            next_items = next_data.get("pageProps", {}).get("ad", {}).get("paginatedUnits", {}).get(
-                                "items", [])
-                            print(f"     Next.js API: Page {page} retrieved {len(next_items)} units.")
+                                saved_count = 0
+                                for unit_dict in next_items:
+                                    # Your existing extract_unit_from_json takes (unit_dict, investment_url)
+                                    was_saved = self.extract_unit_from_json(unit_dict, investment_url)
+                                    if was_saved:
+                                        saved_count += 1
 
-                            saved_count = 0
-                            for unit_dict in next_items:
-                                was_saved = self.extract_unit_from_json(unit_dict, investment_url)
-                                if was_saved:
-                                    saved_count += 1
-
-                            print(f" Page {page}: saved {saved_count}/{len(next_items)} units")
+                                print(f" Page {page}: saved {saved_count}/{len(next_items)} units")
+                            except Exception as e:
+                                logger.error(f"Error parsing API JSON on page {page}: {e}")
                         else:
-                            logger.warning(f"Next.js API returned status {next_res.status_code} for page {page}.")
+                            logger.warning(f"API returned status {next_res.status_code} for page {page}.")
                             if next_res.status_code in [403, 405, 429]:
                                 cooldown = random.uniform(600.0, 660.0)
                                 logger.warning(f"DATADOME BLOCK on API. Sleeping {cooldown / 60:.2f}m...")
