@@ -457,41 +457,34 @@ class Crawler:
         self.params = original_params
         print(f"[INVESTMENT] Finished processing queue.\n")
 
-    def extract_unit_from_json(self, unit_dict: dict, investment_url: str):
+    def extract_unit_from_json(self, unit_dict: dict, investment_url: str, main_location: dict = None):
         """
         Maps a unit's JSON dictionary directly to a PropertyDocument and saves it.
-        Bypasses the need to request the unit's individual HTML page.
+        Uses main_location from the parent investment to fill in missing street/district data.
         """
         from models.property import PropertyDocument
         from services.property import PropertyService
         from common.constans import Constans, OfferedBy, PropertyType, MarketType, AuctionType
         import datetime
+        import re
 
-        # Generate full URL
         path = unit_dict.get("url", "")
         full_url = f"{Constans.DEFAULT_URL}{path}" if path.startswith("/") else path
 
-        # Robust ID extraction
         raw_id = (
-                unit_dict.get("id")
-                or unit_dict.get("adId")
-                or unit_dict.get("externalId")
-                or unit_dict.get("target", {}).get("Id")
+                unit_dict.get("id") or unit_dict.get("adId") or
+                unit_dict.get("externalId") or unit_dict.get("target", {}).get("Id")
         )
 
         if not raw_id and full_url:
-            # Fallback: use slug tail as stable identifier
             m = re.search(r"(ID[0-9A-Za-z]+)$", full_url)
             raw_id = m.group(1) if m else None
 
         if not raw_id:
-            logger.warning(f"Skipping unit with no identifiable ID: {full_url}")
             return False
 
         otodom_id = str(raw_id)
-
         if PropertyService.get_by_otodom_id(int(otodom_id)):
-            logger.info(f"Already exists, skipping: {full_url}")
             return False
 
         try:
@@ -515,9 +508,7 @@ class Crawler:
 
             floor_list = target_data.get("Floor_no", [])
             if floor_list:
-                # Usually format is "floor_5" or "ground_floor"
-                floor_str = str(floor_list[0]).replace("floor_", "").replace("ground_floor", "0")
-                property_.floor = floor_str
+                property_.floor = str(floor_list[0]).replace("floor_", "").replace("ground_floor", "0")
 
             # --- BUILDING EXTRACTION ---
             from models.building import BuildingDocument
@@ -525,9 +516,10 @@ class Crawler:
             building.build_year = target_data.get("Build_year")
 
             b_types = target_data.get("Building_type", [])
-            building.building_type = b_types[0] if b_types else None
+            building.type = b_types[0] if b_types else None  # Mapped to 'type'
 
-            building.floors_num = target_data.get("Building_floors_num")
+            b_floors = target_data.get("Building_floors_num")
+            building.floors = int(b_floors) if b_floors else None  # Mapped to 'floors'
 
             b_ownership = target_data.get("Building_ownership", [])
             building.ownership = b_ownership[0] if b_ownership else None
@@ -550,41 +542,56 @@ class Crawler:
 
                     # --- PHOTOS ---
             images = unit_dict.get("images", [])
-            photo_urls = []
-            for img in images:
-                img_url = img.get("large") or img.get("medium") or img.get("small")
-                if img_url:
-                    photo_urls.append(img_url)
-
-            if photo_urls:
-                property_.photos = ", ".join(photo_urls)
-
-            # --- DESCRIPTION ---
-            # Otodom paginated API does not return descriptions.
+            photo_urls = [img.get("large") or img.get("medium") or img.get("small") for img in images]
+            property_.photos = ", ".join(filter(None, photo_urls))
             property_.description = unit_dict.get("description", "Brak opisu (oferta deweloperska).")
 
-            # --- LOCALIZATION ---
+            # --- LOCALIZATION EXTRACTION (USING PARENT INVESMENT DATA) ---
             from models.localization import LocalizationDocument
             loc = LocalizationDocument()
 
-            loc.province = target_data.get('Province', self.settings.province)
-            loc.city = target_data.get('City', self.settings.city)
-            # Fallback to general search setting since district is rarely in the target dict
-            loc.district = self.settings.district
+            # 1. Start with the main investment location if provided
+            if main_location and isinstance(main_location, dict):
+                address = main_location.get("address", {})
+                loc.street = address.get("street", {}).get("name")
+                loc.district = address.get("district", {}).get("name")
+                loc.city = address.get("city", {}).get("name")
+                loc.county = address.get("county", {}).get("name")
+                loc.province = address.get("province", {}).get("name")
+            else:
+                loc.city = self.settings.city
+                loc.province = self.settings.province
+                loc.district = self.settings.district
 
-            location_data = unit_dict.get('location', {})
-            coordinates = location_data.get('coordinates', {})
+            # 2. Override with unit specific target data if any exists
+            loc.province = target_data.get('Province', loc.province)
+            loc.city = target_data.get('City', loc.city)
+
+            # 'Subregion' in Otodom target dict is the County (e.g. 'powiat-krakow')
+            county_raw = target_data.get("Subregion")
+            if county_raw:
+                loc.county = county_raw.replace("powiat-", "").capitalize()
+
+            # 3. GPS Coordinates
+            unit_loc = unit_dict.get('location', {})
+            coordinates = unit_loc.get('coordinates', {})
             if coordinates:
                 loc.latitude = float(coordinates.get('latitude', coordinates.get('lat', 0.0)))
                 loc.longitude = float(coordinates.get('longitude', coordinates.get('lon', 0.0)))
+            elif main_location and main_location.get("coordinates"):
+                # Fallback to parent coordinates
+                loc.latitude = float(main_location["coordinates"].get("latitude", 0.0))
+                loc.longitude = float(main_location["coordinates"].get("longitude", 0.0))
 
             property_.localization = loc
 
+            import logging
             logger.info(f" Saved Unit directly from JSON: {property_.link}")
             PropertyService.put(property_)
             return True
 
         except Exception as e:
+            import logging
             logger.error(f"Failed to map JSON for unit {full_url}: {e}")
             return False
 
