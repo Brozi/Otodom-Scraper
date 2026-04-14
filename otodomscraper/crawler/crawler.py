@@ -327,7 +327,7 @@ class Crawler:
             try:
                 print(f"[INVESTMENT] Scraping: {investment_url}")
                 import time, random
-                time.sleep(random.uniform(2.0, 4.0))
+                time.sleep(random.uniform(6.0, 10.0))
 
                 # 1. Fetch the HTML of the investment page directly
                 response = self.session.get(investment_url, timeout=15)
@@ -382,7 +382,7 @@ class Crawler:
                         import time, random
                         import json
 
-                        time.sleep(random.uniform(2.5, 4.5))
+                        time.sleep(random.uniform(6.0, 12.0))
 
                         # Build the exact variables JSON required by their server
                         variables = {
@@ -458,7 +458,7 @@ class Crawler:
 
                 # Remove from queue once successfully processed
                 self.investments_queue.remove(investment_url)
-                time.sleep(random.uniform(3.0, 7.0))
+                time.sleep(random.uniform(10.0, 15.0))
 
             except Exception as e:
                 logger.error(f"[INVESTMENT] Failed to process {investment_url}: {e}")
@@ -478,6 +478,8 @@ class Crawler:
         from common.constans import Constans, OfferedBy, PropertyType, MarketType, AuctionType
         import datetime
         import re
+        import time, random
+        time.sleep(random.uniform(4.0, 10.0))
 
         path = unit_dict.get("url", "")
         full_url = f"{Constans.DEFAULT_URL}{path}" if path.startswith("/") else path
