@@ -348,9 +348,12 @@ class Crawler:
                     continue
 
                 data = json.loads(match.group(1))
-                build_id = data.get("buildId")
 
                 ad_data = data.get("props", {}).get("pageProps", {}).get("ad", {})
+
+                # GRAB THE MAIN LOCATION HERE
+                main_location = ad_data.get("location", {})
+
                 if "paginatedUnits" not in ad_data:
                     logger.warning(f"No paginatedUnits found for {investment_url}. Skipping.")
                     self.investments_queue.remove(investment_url)
@@ -361,11 +364,10 @@ class Crawler:
                 items_page_1 = paginated_units.get("items", [])
 
                 print(f"  -> Found {total_pages} pages of units.")
-                dynamic_page_size = len(items_page_1) if items_page_1 else 6
 
-                # 2. Extract Page 1 units
+                # Pass main_location to Page 1 units
                 for unit_dict in items_page_1:
-                    self.extract_unit_from_json(unit_dict, investment_url)
+                    self.extract_unit_from_json(unit_dict, investment_url, main_location)
 
                 # 3. If there are more pages, fetch them using the Apollo Persisted Query API
                 # Note: We don't need build_id anymore, just the investment_id (ad_data['id'])
