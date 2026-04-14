@@ -410,8 +410,13 @@ class Crawler:
                                 "items", [])
                             print(f"     Next.js API: Page {page} retrieved {len(next_items)} units.")
 
+                            saved_count = 0
                             for unit_dict in next_items:
-                                self.extract_unit_from_json(unit_dict, investment_url)
+                                was_saved = self.extract_unit_from_json(unit_dict, investment_url)
+                                if was_saved:
+                                    saved_count += 1
+
+                            print(f" Page {page}: saved {saved_count}/{len(next_items)} units")
                         else:
                             logger.warning(f"Next.js API returned status {next_res.status_code} for page {page}.")
                             if next_res.status_code in [403, 405, 429]:
@@ -462,13 +467,13 @@ class Crawler:
 
         if not raw_id:
             logger.warning(f"Skipping unit with no identifiable ID: {full_url}")
-            return
+            return False
 
         otodom_id = str(raw_id)
 
         if PropertyService.get_by_otodom_id(int(otodom_id)):
             logger.info(f"Already exists, skipping: {full_url}")
-            return
+            return False
 
         try:
             property_ = PropertyDocument()
@@ -552,9 +557,11 @@ class Crawler:
 
             logger.info(f" Saved Unit directly from JSON: {property_.link}")
             PropertyService.put(property_)
+            return True
 
         except Exception as e:
             logger.error(f"Failed to map JSON for unit {full_url}: {e}")
+            return False
 
     def to_csv_file(self, filename: str) -> None:
         """
