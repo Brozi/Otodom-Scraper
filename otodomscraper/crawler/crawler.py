@@ -426,8 +426,15 @@ class Crawler:
                         if next_res.status_code == 200:
                             try:
                                 next_data = next_res.json()
-                                # The GraphQL response is nested under data -> ad -> paginatedUnits -> items
-                                next_items = next_data.get("data", {}).get("paginatedUnits", {}).get("items", [])
+
+                                # 1. Print GraphQL errors if the server rejected our request
+                                if "errors" in next_data:
+                                    logger.error(f"GraphQL Errors on page {page}: {next_data['errors']}")
+
+                                # 2. Safely extract data (using 'or {}' handles null/None values)
+                                data_block = next_data.get("data") or {}
+                                paginated_units = data_block.get("paginatedUnits") or {}
+                                next_items = paginated_units.get("items") or []
 
                                 print(f"     API: Page {page} retrieved {len(next_items)} units.")
 
