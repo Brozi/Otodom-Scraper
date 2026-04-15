@@ -218,9 +218,6 @@ jobs:
   # ==========================================
   # JOB 3: Merge all chunks into one final file
   # ==========================================
-  # ==========================================
-  # JOB E: Merge all chunks into one final file
-  # ==========================================
   merge:
     needs: [ scrape_chunk, scrape_leftover_investments ]
     if: always() # Run merge even if one chunk failed, so you don't lose data
