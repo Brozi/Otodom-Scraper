@@ -114,11 +114,11 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Create settings.json
         working-directory: ./otodomscraper
-        run: echo "${{ secrets.SETTINGS_JSON }}" > settings.json
+        run: echo "${{ secrets.SETTINGS_JSON_INV }}" > settings.json
       - name: Discover Investments
         id: set-inv-matrix
         working-directory: ./otodomscraper
-        run: python jobs/discover_investments.py
+        run: python services/investment_discovery.py
 
   # ==========================================
   # JOB B: Scrape primary investments (Runs in parallel with scrape_chunk)
@@ -139,7 +139,7 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Create settings.json
         working-directory: ./otodomscraper
-        run: echo "${{ secrets.SETTINGS_JSON }}" > settings.json
+        run: echo "${{ secrets.SETTINGS_JSON_INV }}" > settings.json
       - name: Run Investment Scraper
         working-directory: ./otodomscraper
         run: python jobs/run_investments.py '${{ toJSON(matrix.urls) }}'
@@ -209,7 +209,7 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Create settings.json
         working-directory: ./otodomscraper
-        run: echo "${{ secrets.SETTINGS_JSON }}" > settings.json
+        run: echo "${{ secrets.SETTINGS_JSON_INV }}" > settings.json
       - name: Run Leftover Scraper
         working-directory: ./otodomscraper
         run: python jobs/run_investments.py '${{ toJSON(matrix.urls) }}'
