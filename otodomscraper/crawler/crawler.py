@@ -472,8 +472,8 @@ class Crawler:
                                     if was_saved:
                                         saved_count += 1
 
-                                        print(f" Page {page}: saved {saved_count}/{len(next_items)} units")
-                                        page += 1  # SUCCESS: move to the next page
+                                print(f" Page {page}: saved {saved_count}/{len(next_items)} units")
+                                page += 1  # SUCCESS: move to the next page
                             except Exception as e:
                                     logger.error(f"Error parsing API JSON on page {page}: {e}")
                                     page += 1  # Skip broken page to avoid infinite loop
