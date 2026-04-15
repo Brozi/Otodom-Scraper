@@ -392,7 +392,7 @@ class Crawler:
                         import time, random
                         import json
 
-                        time.sleep(random.uniform(6.0, 12.0))
+                        time.sleep(random.uniform(4.5, 7.0))
 
                         # Build the exact variables JSON required by their server
                         variables = {
