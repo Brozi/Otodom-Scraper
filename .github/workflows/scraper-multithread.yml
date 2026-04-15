@@ -232,7 +232,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-              # Unique name for leftovers, but still starts with scraper-results- so the merger grabs it!
+                # Unique name for leftovers, but still starts with scraper-results- so the merger grabs it!
                 name: scraper-results-leftover-${{ strategy.job-index }}
                 path: |
                    otodomscraper/*.csv
