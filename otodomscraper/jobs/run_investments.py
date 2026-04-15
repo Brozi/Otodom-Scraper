@@ -28,13 +28,13 @@ def main():
 
     timestamp = int(time.time())
     csv_filename = f"listings_{timestamp}.csv"
+    excel_filename = f"listings_{timestamp}.xlsx"
 
     crawler.to_csv_file(csv_filename)
-    crawler.to_json_file(f"listings_{timestamp}.json")
     from pandas import read_csv
     if os.path.exists(csv_filename):
         df = read_csv(csv_filename)
-        df.to_excel(csv_filename, index=False)
+        df.to_excel(excel_filename, index=False)
     else:
         print(f"No CSV generated (0 new listings found). Skipping read.")
 
