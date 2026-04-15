@@ -256,8 +256,9 @@ class Crawler:
                 listing.agency = agency_doc
 
             if property_.offered_by == OfferedBy.DEVELOPER:
-                logger.info(f" Queueing investment for later: {property_.link}")
-                self.investments_queue.add(property_.link)
+                logger.info(f" Found hidden investment: {property_.link}")
+                with open("found_investments.txt", "a", encoding="utf-8") as f:
+                    f.write(property_.link + "\n")
                 return
             if PropertyService.get_by_otodom_id(property_.otodom_id) is None:
                 logger.info(f" Saved to Database: {property_.link}")
