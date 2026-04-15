@@ -124,7 +124,7 @@ jobs:
       - name: Discover Investments
         id: set-inv-matrix
         working-directory: ./otodomscraper
-        run: python services/investment_discovery.py
+        run: python -u jobs/run_inv_discovery.py
 
   # ==========================================
   # JOB B: Scrape primary investments (Runs in parallel with scrape_chunk)
