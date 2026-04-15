@@ -495,6 +495,8 @@ class Crawler:
                             page += 1
 
                 # Remove from queue once successfully processed
+                with open("scraped_investments.txt", "a", encoding="utf-8") as f:
+                    f.write(investment_url + "\n")
                 self.investments_queue.remove(investment_url)
                 time.sleep(random.uniform(10.0, 15.0))
 
