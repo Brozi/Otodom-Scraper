@@ -1,12 +1,13 @@
 import json
 import os
 from crawler.crawler import Crawler
+from common import PropertyType
 
 
 def discover():
     crawler = Crawler()
     # Force search to look only at the investments category
-    crawler.settings.property_type = "inwestycja"
+    crawler.settings.property_type = PropertyType.INVESTMENT
 
     total_pages, _ = crawler.count_pages()
     investment_urls = set()
