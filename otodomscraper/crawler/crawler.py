@@ -574,6 +574,10 @@ class Crawler:
             if security_list:
                 property_.security_types = ", ".join(security_list)
 
+            heating_list = target_data.get("Heating", [])
+            if heating_list:
+                property_.heating = ", ".join(heating_list)
+
             floor_list = target_data.get("Floor_no", [])
             if floor_list:
                 property_.floor = str(floor_list[0]).replace("floor_", "").replace("ground_floor", "0")
