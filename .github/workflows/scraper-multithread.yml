@@ -91,21 +91,138 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          # Name the artifact dynamically so each chunk has its own folder
           name: scraper-results-${{ matrix.range }}
           path: |
             otodomscraper/*.csv
             otodomscraper/*.xlsx
             otodomscraper/scraper_log_*.txt
             otodomscraper/debug_page.html
+            otodomscraper/found_investments.txt
           retention-days: 2 # Keep individual chunks for a short time to save space
+  # ==========================================
+  # JOB A: Discover primary investments upfront
+  # ==========================================
+  discover_investments:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-inv-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install -r requirements.txt
+      - name: Create settings.json
+        working-directory: ./otodomscraper
+        run: echo "${{ secrets.SETTINGS_JSON }}" > settings.json
+      - name: Discover Investments
+        id: set-inv-matrix
+        working-directory: ./otodomscraper
+        run: python jobs/discover_investments.py
+
+  # ==========================================
+  # JOB B: Scrape primary investments (Runs in parallel with scrape_chunk)
+  # ==========================================
+  scrape_primary_investments:
+    needs: discover_investments
+    if: ${{ needs.discover_investments.outputs.matrix != '[[]]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        urls: ${{ fromJson(needs.discover_investments.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install -r requirements.txt
+      - name: Create settings.json
+        working-directory: ./otodomscraper
+        run: echo "${{ secrets.SETTINGS_JSON }}" > settings.json
+      - name: Run Investment Scraper
+        working-directory: ./otodomscraper
+        run: python jobs/run_investments.py '${{ toJSON(matrix.urls) }}'
+      - name: Upload Scraped Investments Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scraped-inv-${{ strategy.job-index }}
+          path: otodomscraper/scraped_investments.txt
+          retention-days: 2
+
+  # ==========================================
+  # JOB C: Compare found vs already scraped
+  # ==========================================
+  compare_investments:
+    needs: [ scrape_chunk, scrape_primary_investments ]
+    if: always()
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.compare.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: all_data
+      - name: Compare and Generate Leftovers
+        id: compare
+        run: |
+          python -c "
+          import glob, json, os
+
+          found_urls = set()
+          for f in glob.glob('all_data/**/found_investments.txt', recursive=True):
+              with open(f, 'r') as file: found_urls.update(line.strip() for line in file if line.strip())
+
+          scraped_urls = set()
+          for f in glob.glob('all_data/**/scraped_investments.txt', recursive=True):
+              with open(f, 'r') as file: scraped_urls.update(line.strip() for line in file if line.strip())
+
+          leftovers = list(found_urls - scraped_urls)
+          print(f'Found: {len(found_urls)}, Scraped: {len(scraped_urls)}, Leftovers: {len(leftovers)}')
+
+          chunk_size = 5
+          chunks = [leftovers[i:i + chunk_size] for i in range(0, len(leftovers), chunk_size)]
+          if not chunks: chunks = [[]]
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as env:
+              env.write(f'matrix={json.dumps(chunks)}\n')
+          "
+
+  # ==========================================
+  # JOB D: Scrape Leftover hidden investments
+  # ==========================================
+  scrape_leftover_investments:
+    needs: compare_investments
+    if: ${{ needs.compare_investments.outputs.matrix != '[[]]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        urls: ${{ fromJson(needs.compare_investments.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install -r requirements.txt
+      - name: Create settings.json
+        working-directory: ./otodomscraper
+        run: echo "${{ secrets.SETTINGS_JSON }}" > settings.json
+      - name: Run Leftover Scraper
+        working-directory: ./otodomscraper
+        run: python jobs/run_investments.py '${{ toJSON(matrix.urls) }}'
 
 
   # ==========================================
   # JOB 3: Merge all chunks into one final file
   # ==========================================
+  # ==========================================
+  # JOB E: Merge all chunks into one final file
+  # ==========================================
   merge:
-    needs: scrape_chunk
+    needs: [ scrape_chunk, scrape_leftover_investments ]
     if: always() # Run merge even if one chunk failed, so you don't lose data
     runs-on: ubuntu-latest
     steps:
