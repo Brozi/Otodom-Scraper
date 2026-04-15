@@ -323,7 +323,13 @@ class Crawler:
         original_params = self.params.copy()
 
         # Convert to list so we can iterate safely
+        processed_count = 0
         for investment_url in list(self.investments_queue):
+            if processed_count > 0 and processed_count % 5 == 0:
+                print(f"\n[INVESTMENT] Processed 5 investments. Forcing session rotation to avoid blocks...")
+                self.rotate_session()
+
+            processed_count += 1
             try:
                 print(f"[INVESTMENT] Scraping: {investment_url}")
                 import time, random
@@ -364,7 +370,7 @@ class Crawler:
                 items_page_1 = paginated_units.get("items", [])
 
                 # --- NEW STEALTH BLOCK CHECK ---
-                if items_page_1 and items_page_1[0].get("target") is None:
+                if items_page_1 and any(unit.get("target") is None for unit in items_page_1):
                     logger.warning(f"Stealth block detected on {investment_url}. Sleeping 5 minutes...")
                     import time
                     time.sleep(300)
@@ -456,7 +462,7 @@ class Crawler:
                                 next_items = paginated_units.get("items") or []
 
                                 # --- NEW STEALTH BLOCK CHECK ---
-                                if next_items and next_items[0].get("target") is None:
+                                if next_items and any(unit.get("target") is None for unit in next_items):
                                     logger.warning(f"Stealth API block on page {page}. Sleeping 5 minutes...")
                                     time.sleep(300)
                                     self.session = requests.Session(impersonate="chrome120")
