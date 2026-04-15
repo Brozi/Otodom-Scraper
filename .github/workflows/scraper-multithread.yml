@@ -124,7 +124,8 @@ jobs:
       - name: Discover Investments
         id: set-inv-matrix
         working-directory: ./otodomscraper
-        run: python -u jobs/run_inv_discovery.py
+        # Add PYTHONPATH=. right before python
+        run: PYTHONPATH=. python -u jobs/run_inv_discovery.py
 
   # ==========================================
   # JOB B: Scrape primary investments (Runs in parallel with scrape_chunk)
@@ -151,7 +152,7 @@ jobs:
           EOF
       - name: Run Investment Scraper
         working-directory: ./otodomscraper
-        run: python jobs/run_investments.py '${{ toJSON(matrix.urls) }}'
+        run: PYTHONPATH=. python -u jobs/run_investments.py '${{ toJSON(matrix.urls) }}'
       - name: Upload Scraped Investments Log
         if: always()
         uses: actions/upload-artifact@v4
