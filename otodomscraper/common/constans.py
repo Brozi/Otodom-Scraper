@@ -78,6 +78,7 @@ class Constans:
         "building_type",
         "created_at",
         "description",
+        "developer_id",
         "estate_agency",
         "extras",
         "floor",

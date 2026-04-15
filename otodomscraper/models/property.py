@@ -55,6 +55,7 @@ class PropertyDocument(Document):
     building = EmbeddedDocumentField(BuildingDocument)
     offered_by = EnumField(OfferedBy, required=True)
     estate_agency = ReferenceField("AgencyDocument", reverse_delete_rule=NULLIFY)
+    developer_id = IntField(db_field="developer_id")
 
     meta = {"collection": "Properties"}
 

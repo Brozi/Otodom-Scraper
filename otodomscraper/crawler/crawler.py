@@ -360,6 +360,11 @@ class Crawler:
 
                 # GRAB THE MAIN LOCATION HERE
                 main_location = ad_data.get("location", {})
+                seller_type = ad_data.get("target", {}).get("user_type", {})
+                if seller_type == "developer":
+                    developer_id = ad_data.get("target", {}).get("seller_id", {})
+                else:
+                    developer_id = None
 
                 if "paginatedUnits" not in ad_data:
                     logger.warning(f"No paginatedUnits found for {investment_url}. Skipping.")
@@ -385,7 +390,7 @@ class Crawler:
 
                 # Pass main_location to Page 1 units
                 for unit_dict in items_page_1:
-                    self.extract_unit_from_json(unit_dict, investment_url, main_location)
+                    self.extract_unit_from_json(unit_dict, investment_url, main_location, developer_id)
 
                 # 3. If there are more pages, fetch them using the Apollo Persisted Query API
                 # Note: We don't need build_id anymore, just the investment_id (ad_data['id'])
@@ -475,7 +480,7 @@ class Crawler:
                                 saved_count = 0
                                 for unit_dict in next_items:
                                     # Your existing extract_unit_from_json takes (unit_dict, investment_url)
-                                    was_saved = self.extract_unit_from_json(unit_dict, investment_url, main_location)
+                                    was_saved = self.extract_unit_from_json(unit_dict, investment_url, main_location, developer_id)
                                     if was_saved:
                                         saved_count += 1
 
@@ -508,7 +513,7 @@ class Crawler:
         self.params = original_params
         print(f"[INVESTMENT] Finished processing queue.\n")
 
-    def extract_unit_from_json(self, unit_dict: dict, investment_url: str, main_location: dict = None):
+    def extract_unit_from_json(self, unit_dict: dict, investment_url: str, main_location: dict = None, developer_id: int = None):
         """
         Maps a unit's JSON dictionary directly to a PropertyDocument and saves it.
         Uses main_location from the parent investment to fill in missing street/district data.
@@ -544,6 +549,9 @@ class Crawler:
             property_.otodom_id = otodom_id
             property_.created_at = datetime.datetime.now()
             property_.title = unit_dict.get('title', 'Developer Unit')
+
+            if developer_id:
+                property_.developer_id = int(developer_id)
 
             # --- TARGET DICT EXTRACTION ---
             target_data = unit_dict.get("target", {})
