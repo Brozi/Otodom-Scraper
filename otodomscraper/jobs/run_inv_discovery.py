@@ -11,7 +11,7 @@ sys.path.append(scraper_dir)
 os.chdir(scraper_dir)
 
 from crawler.crawler import Crawler
-from common import PropertyType
+from settings.s_types import PropertyType
 
 
 def discover():
