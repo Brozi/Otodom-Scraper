@@ -153,13 +153,17 @@ jobs:
       - name: Run Investment Scraper
         working-directory: ./otodomscraper
         run: PYTHONPATH=. python -u jobs/run_investments.py '${{ toJSON(matrix.urls) }}'
-      - name: Upload Scraped Investments Log
+      - name: Upload Chunk Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: scraped-inv-${{ strategy.job-index }}
-          path: otodomscraper/scraped_investments.txt
-          retention-days: 2
+            # Prefix with scraper-results- so the merger's wildcard pattern catches it!
+            name: scraper-results-inv-${{ strategy.job-index }}
+            path: |
+              otodomscraper/*.csv
+              otodomscraper/*.xlsx
+              otodomscraper/scraped_investments.txt
+            retention-days: 2
 
   # ==========================================
   # JOB C: Compare found vs already scraped
