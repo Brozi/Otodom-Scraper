@@ -131,6 +131,7 @@ jobs:
   # JOB B: Scrape primary investments (Runs in parallel with scrape_chunk)
   # ==========================================
   scrape_primary_investments:
+    name: scrape_primary_investment (${{ strategy.job-index }})  # <--- ADD THIS LINE
     needs: discover_investments
     if: ${{ needs.discover_investments.outputs.matrix != '[[]]' }}
     runs-on: ubuntu-latest
@@ -227,6 +228,17 @@ jobs:
       - name: Run Leftover Scraper
         working-directory: ./otodomscraper
         run: python jobs/run_investments.py '${{ toJSON(matrix.urls) }}'
+      - name: Upload Leftover Chunk Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+              # Unique name for leftovers, but still starts with scraper-results- so the merger grabs it!
+                name: scraper-results-leftover-${{ strategy.job-index }}
+                path: |
+                   otodomscraper/*.csv
+                   otodomscraper/*.xlsx
+                   otodomscraper/scraped_investments.txt
+                 retention-days: 2
 
 
   # ==========================================
