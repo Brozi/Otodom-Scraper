@@ -612,12 +612,12 @@ class Crawler:
 
             # 1. Start with the main investment location if provided
             if main_location and isinstance(main_location, dict):
-                address = main_location.get("address", {})
-                loc.street = address.get("street", {}).get("name")
-                loc.district = address.get("district", {}).get("name")
-                loc.city = address.get("city", {}).get("name")
-                loc.county = address.get("county", {}).get("name")
-                loc.province = address.get("province", {}).get("name")
+                address = main_location.get("address") or {}
+                loc.street = (address.get("street") or {}).get("name")
+                loc.district = (address.get("district") or {}).get("name")
+                loc.city = (address.get("city") or {}).get("name")
+                loc.county = (address.get("county") or {}).get("name")
+                loc.province = (address.get("province") or {}).get("name")
             else:
                 loc.city = self.settings.city
                 loc.province = self.settings.province
