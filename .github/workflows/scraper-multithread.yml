@@ -5,6 +5,9 @@ on:
     - cron: '0 0 1 * *' # Runs at midnight on the 1st of every month
   workflow_dispatch:
 
+env:
+    ACTIVE_SETTINGS_JSON: ${{ secrets.SETTINGS_JSON_INV }}
+
 jobs:
   # ==========================================
   # JOB 1: Discover the price ranges
@@ -29,7 +32,7 @@ jobs:
         working-directory: ./otodomscraper
         run: |
           cat << 'EOF' > settings.json
-          ${{ secrets.SETTINGS_JSON_INV }}
+          ${{ env.ACTIVE_SETTINGS_JSON }}
           EOF
 
       - name: Run Discovery Script
@@ -65,7 +68,7 @@ jobs:
         working-directory: ./otodomscraper
         run: |
           cat << 'EOF' > settings.json
-          ${{ secrets.SETTINGS_JSON_INV }}
+          ${{ env.ACTIVE_SETTINGS_JSON }}
           EOF
 
       - name: Inject Matrix Prices into settings.json
@@ -114,7 +117,10 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Create settings.json
         working-directory: ./otodomscraper
-        run: echo "${{ secrets.SETTINGS_JSON_INV }}" > settings.json
+        run: |
+          cat << 'EOF' > settings.json
+          ${{ env.ACTIVE_SETTINGS_JSON }}
+          EOF
       - name: Discover Investments
         id: set-inv-matrix
         working-directory: ./otodomscraper
@@ -139,7 +145,10 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Create settings.json
         working-directory: ./otodomscraper
-        run: echo "${{ secrets.SETTINGS_JSON_INV }}" > settings.json
+        run: |
+          cat << 'EOF' > settings.json
+          ${{ env.ACTIVE_SETTINGS_JSON }}
+          EOF
       - name: Run Investment Scraper
         working-directory: ./otodomscraper
         run: python jobs/run_investments.py '${{ toJSON(matrix.urls) }}'
@@ -209,7 +218,7 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Create settings.json
         working-directory: ./otodomscraper
-        run: echo "${{ secrets.SETTINGS_JSON_INV }}" > settings.json
+        run: echo "${{ env.ACTIVE_SETTINGS_JSON }}" > settings.json
       - name: Run Leftover Scraper
         working-directory: ./otodomscraper
         run: python jobs/run_investments.py '${{ toJSON(matrix.urls) }}'
