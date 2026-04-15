@@ -3,6 +3,7 @@ import json
 import time
 import random
 import sys
+import logging
 
 # Ensure Python can find the otodomscraper modules
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -12,6 +13,13 @@ os.chdir(scraper_dir)
 
 from crawler.crawler import Crawler
 from settings.s_types import PropertyType
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    stream=sys.stdout
+
+)
 
 
 def discover():

@@ -1,6 +1,14 @@
 import sys
 import json
 from crawler.crawler import Crawler
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    stream=sys.stdout
+
+)
 
 
 def main():
