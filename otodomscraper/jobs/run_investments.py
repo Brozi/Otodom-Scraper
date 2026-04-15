@@ -2,6 +2,8 @@ import sys
 import json
 from crawler.crawler import Crawler
 import logging
+import time
+import os
 
 logging.basicConfig(
     level=logging.INFO,
@@ -24,12 +26,17 @@ def main():
 
     crawler.process_investment_queue()
 
-    import time
     timestamp = int(time.time())
-    crawler.to_csv_file(f"investments_{timestamp}.csv")
+    csv_filename = f"listings_{timestamp}.csv"
+
+    crawler.to_csv_file(csv_filename)
+    crawler.to_json_file(f"listings_{timestamp}.json")
     from pandas import read_csv
-    df = read_csv(f"listings_{timestamp}.csv")
-    df.to_excel(f"listings_{timestamp}.xlsx", index=False)
+    if os.path.exists(csv_filename):
+        df = read_csv(csv_filename)
+        df.to_excel(csv_filename, index=False)
+    else:
+        print(f"No CSV generated (0 new listings found). Skipping read.")
 
 
 if __name__ == "__main__":

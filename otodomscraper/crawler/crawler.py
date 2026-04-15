@@ -647,6 +647,10 @@ class Crawler:
 
             import logging
             logger.info(f" Saved Unit directly from JSON: {property_.link}")
+            from crawler.listing import Listing
+            listing = Listing()
+            listing.property_ = property_
+            self.listings.append(listing)
             PropertyService.put(property_)
             return True
 
