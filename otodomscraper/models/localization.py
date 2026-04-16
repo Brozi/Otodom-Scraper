@@ -1,6 +1,7 @@
 from mongoengine import EmbeddedDocument
 from mongoengine import FloatField
 from mongoengine import StringField
+from mongoengine import PointField
 
 
 class LocalizationDocument(EmbeddedDocument):
@@ -16,6 +17,7 @@ class LocalizationDocument(EmbeddedDocument):
     county = StringField()
     latitude = FloatField()
     longitude = FloatField()
+    location = PointField()
 
     def extract_data(self, properties: dict):
         """
@@ -30,6 +32,9 @@ class LocalizationDocument(EmbeddedDocument):
         self.street = self.extract_street(properties["address"])
         self.county = self.extract_county(properties["address"])
         self.latitude, self.longitude = self.extract_coordinates(properties)
+
+        if self.longitude and self.latitude:
+            self.location = [self.longitude, self.latitude]
 
     @staticmethod
     def extract_district(properties: dict) -> str:
