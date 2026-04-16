@@ -55,6 +55,7 @@ class PropertyDocument(Document):
     building = EmbeddedDocumentField(BuildingDocument)
     offered_by = EnumField(OfferedBy, required=True)
     estate_agency = ReferenceField("AgencyDocument", reverse_delete_rule=NULLIFY)
+    developer_id = IntField(db_field="developer_id")
 
     meta = {"collection": "Properties"}
 
@@ -87,7 +88,14 @@ class PropertyDocument(Document):
             listing_properties["target"]["ProperType"]
         ]
         self.market_type = MarketType(listing_properties["target"]["MarketType"])
-        self.auction_type = AUCTION_TYPE_MAP[listing_properties["target"]["OfferType"]]
+
+        # FIX: Ensure we use the dictionary safely with .get()
+        raw_auction_type = listing_properties["target"].get("OfferType")
+        if raw_auction_type:
+            self.auction_type = AUCTION_TYPE_MAP.get(raw_auction_type)
+        else:
+            self.auction_type = None
+
         self.localization = self.extract_localization(listing_properties["location"])
         self.construction_status = self.extract_construction_status(
             listing_properties["target"]
@@ -169,18 +177,21 @@ class PropertyDocument(Document):
         return building
 
     @staticmethod
-    def extract_offered_by(properties: dict) -> str:
+    def extract_offered_by(properties: dict) -> OfferedBy:
         """
         Determines the offer type from the properties.
 
         :param properties: The properties containing the offer type
         :return: The offer type
         """
-        return (
-            OfferedBy.PRIVATE
-            if properties["agency"] is None
-            else OfferedBy.ESTATE_AGENCY
-        )
+        if properties["agency"] is None:
+            return OfferedBy.PRIVATE
+        elif properties["advertType"] in ["DEVELOPER"]:
+            return OfferedBy.DEVELOPER
+        elif properties["advertType"] in ["DEVELOPER_UNIT"]:
+            return OfferedBy.DEVELOPER_UNIT
+        else:
+            return OfferedBy.ESTATE_AGENCY
 
     @staticmethod
     def informational_json_exists(code: ResultSet) -> bool:

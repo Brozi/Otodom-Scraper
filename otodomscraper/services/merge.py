@@ -55,7 +55,7 @@ class DataMerger:
         xlsx_output = os.path.join(self.output_dir, 'master_listings.xlsx')
 
         print(f"Saving to {csv_output}...")
-        master_df.to_csv(csv_output, index=False)
+        master_df.to_csv(csv_output, index=False, sep=';', encoding='utf-8-sig')
 
         print(f"Saving to {xlsx_output}...")
         master_df.to_excel(xlsx_output, index=False)

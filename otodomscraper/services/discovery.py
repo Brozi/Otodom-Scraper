@@ -16,7 +16,7 @@ class RangeDiscoverer:
         :param global_max: The price cap before we just dump everything into a "14m+" bucket.
         """
         self.request_count = 0
-        self.max_requests_per_session = 12  # Safe threshold before DataDome gets suspicious
+        self.max_requests_per_session = 8  # Safe threshold before DataDome gets suspicious
         self.min_range_name = "low"
         self.max_range_name = "high"
         self.max_listings_per_chunk = max_listings_per_chunk

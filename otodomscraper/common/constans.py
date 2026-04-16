@@ -4,6 +4,8 @@ from enum import Enum
 class OfferedBy(Enum):
     PRIVATE = "private"
     ESTATE_AGENCY = "agency"
+    DEVELOPER = "developer"
+    DEVELOPER_UNIT = "developer_unit"
 
 
 class AuctionType(Enum):
@@ -76,6 +78,7 @@ class Constans:
         "building_type",
         "created_at",
         "description",
+        "developer_id",
         "estate_agency",
         "extras",
         "floor",
@@ -113,7 +116,7 @@ PROPERTY_TYPE_MAP = {
     "mieszkanie": PropertyType.FLAT,
     "kawalerka": PropertyType.STUDIO,
     "dom": PropertyType.HOUSE,
-    "inwestycja": PropertyType.INVESTMENT,
+    "inwestycje": PropertyType.INVESTMENT,
     "pokoj": PropertyType.ROOM,
     "dzialka": PropertyType.PLOT,
     "lokal": PropertyType.VENUE,
