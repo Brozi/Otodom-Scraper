@@ -18,6 +18,7 @@ class LocalizationDocument(EmbeddedDocument):
     latitude = FloatField()
     longitude = FloatField()
     location = PointField()
+    #New object prepared for MongoDBs GeoJSON point field type
 
     def extract_data(self, properties: dict):
         """
