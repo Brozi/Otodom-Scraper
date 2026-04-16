@@ -57,7 +57,12 @@ class PropertyDocument(Document):
     estate_agency = ReferenceField("AgencyDocument", reverse_delete_rule=NULLIFY)
     developer_id = IntField(db_field="developer_id")
 
-    meta = {"collection": "Properties"}
+    meta = {"collection": "Properties",
+            "indexes":[
+                "localization.location"
+
+            ]
+            }
 
     def extract_data(self, code: ResultSet) -> None:
         """
