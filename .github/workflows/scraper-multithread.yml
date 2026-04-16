@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-    ACTIVE_SETTINGS_JSON: ${{ secrets.SETTINGS_JSON_INV }}
+    ACTIVE_SETTINGS_JSON: ${{ secrets.SETTINGS_JSON }}
 
 jobs:
   # ==========================================
