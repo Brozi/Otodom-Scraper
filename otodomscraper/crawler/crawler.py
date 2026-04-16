@@ -654,6 +654,8 @@ class Crawler:
                 # Fallback to parent coordinates
                 loc.latitude = float(main_location["coordinates"].get("latitude", 0.0))
                 loc.longitude = float(main_location["coordinates"].get("longitude", 0.0))
+            if loc.longitude and loc.latitude:
+                loc.location = [loc.longitude, loc.latitude]
 
             property_.localization = loc
 
