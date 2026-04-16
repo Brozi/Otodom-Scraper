@@ -688,7 +688,7 @@ class Crawler:
         logger.info(f"Saving listings to {filename}. Format: csv")
         data = [listing.to_dict() for listing in valid_listings]
 
-        with open(filename, "w", newline="", encoding="utf-8    ") as file:
+        with open(filename, "w", newline="", encoding="utf-8") as file:
             dict_writer = csv.DictWriter(file, Constans.CSV_KEYS)
             dict_writer.writeheader()
             dict_writer.writerows(data)
