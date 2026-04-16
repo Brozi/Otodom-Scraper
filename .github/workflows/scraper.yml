@@ -49,6 +49,6 @@ jobs:
           path: |
             otodomscraper/*.csv
             otodomscraper/*.xlsx
-            otodomscraper/scraper_log_*.txt
+            otodomscraper/log/scraper_log_*.txt
             otodomscraper/debug_page.html
           retention-days: 7

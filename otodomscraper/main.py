@@ -25,7 +25,7 @@ class TerminalLogger:
         self.log_file.flush()
 
 
-log_filename = datetime.datetime.now().strftime("scraper_log_%Y-%m-%d_%H-%M-%S.txt")
+log_filename = datetime.datetime.now().strftime("log/scraper_log_%Y-%m-%d_%H-%M-%S.txt")
 sys.stdout = TerminalLogger(log_filename, sys.stdout)
 sys.stderr = TerminalLogger(log_filename, sys.stderr)
 

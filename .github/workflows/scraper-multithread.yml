@@ -98,7 +98,7 @@ jobs:
           path: |
             otodomscraper/*.csv
             otodomscraper/*.xlsx
-            otodomscraper/scraper_log_*.txt
+            otodomscraper/log/scraper_log_*.txt
             otodomscraper/debug_page.html
             otodomscraper/found_investments.txt
           retention-days: 2 # Keep individual chunks for a short time to save space
