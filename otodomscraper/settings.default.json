@@ -4,7 +4,7 @@
             "min": 0,
             "max": 14000000
         },
-        "max_listings_per_chunk": 2800,
+        "max_listings_per_chunk": 1500,
         "district": " ",
         "province" : "malopolskie",
         "city": "krakow",
