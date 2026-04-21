@@ -29,7 +29,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Create base settings.json securely
-        working-directory: ./real-estate-project
+        working-directory: ./listing-scraper
         run: |
           cat << 'EOF' > settings.json
           ${{ env.ACTIVE_SETTINGS_JSON }}
@@ -37,7 +37,7 @@ jobs:
 
       - name: Run Discovery Script
         id: set-matrix
-        working-directory: ./real-estate-project
+        working-directory: ./listing-scraper
         run: python -u jobs/run_discovery.py
 
 
@@ -65,14 +65,14 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Create base settings.json securely
-        working-directory: ./real-estate-project
+        working-directory: ./listing-scraper
         run: |
           cat << 'EOF' > settings.json
           ${{ env.ACTIVE_SETTINGS_JSON }}
           EOF
 
       - name: Inject Matrix Prices into settings.json
-        working-directory: ./real-estate-project
+        working-directory: ./listing-scraper
         # This reads the settings.json we just created, updates the min/max prices for this specific chunk, and saves it.
         run: |
           python -c "
@@ -86,7 +86,7 @@ jobs:
           "
 
       - name: Run the Scraper
-        working-directory: ./real-estate-project
+        working-directory: ./listing-scraper
         timeout-minutes: 355
         run: python main.py
 
@@ -96,11 +96,11 @@ jobs:
         with:
           name: scraper-results-${{ matrix.range }}
           path: |
-            real-estate-project/*.csv
-            real-estate-project/*.xlsx
-            real-estate-project/log/scraper_log_*.txt
-            real-estate-project/debug_page.html
-            real-estate-project/found_investments.txt
+            listing-scraper/*.csv
+            listing-scraper/*.xlsx
+            listing-scraper/log/scraper_log_*.txt
+            listing-scraper/debug_page.html
+            listing-scraper/found_investments.txt
           retention-days: 2 # Keep individual chunks for a short time to save space
   # ==========================================
   # JOB A: Discover primary investments upfront
@@ -116,14 +116,14 @@ jobs:
           python-version: '3.13'
       - run: pip install -r requirements.txt
       - name: Create settings.json
-        working-directory: ./real-estate-project
+        working-directory: ./listing-scraper
         run: |
           cat << 'EOF' > settings.json
           ${{ env.ACTIVE_SETTINGS_JSON }}
           EOF
       - name: Discover Investments
         id: set-inv-matrix
-        working-directory: ./real-estate-project
+        working-directory: ./listing-scraper
         # Add PYTHONPATH=. right before python
         run: PYTHONPATH=. python -u jobs/run_inv_discovery.py
 
@@ -146,13 +146,13 @@ jobs:
           python-version: '3.13'
       - run: pip install -r requirements.txt
       - name: Create settings.json
-        working-directory: ./real-estate-project
+        working-directory: ./listing-scraper
         run: |
           cat << 'EOF' > settings.json
           ${{ env.ACTIVE_SETTINGS_JSON }}
           EOF
       - name: Run Investment Scraper
-        working-directory: ./real-estate-project
+        working-directory: ./listing-scraper
         run: PYTHONPATH=. python -u jobs/run_investments.py '${{ toJSON(matrix.urls) }}'
       - name: Upload Chunk Artifacts
         if: always()
@@ -161,9 +161,9 @@ jobs:
             # Prefix with scraper-results- so the merger's wildcard pattern catches it!
             name: scraper-results-inv-${{ strategy.job-index }}
             path: |
-              real-estate-project/*.csv
-              real-estate-project/*.xlsx
-              real-estate-project/scraped_investments.txt
+              listing-scraper/*.csv
+              listing-scraper/*.xlsx
+              listing-scraper/scraped_investments.txt
             retention-days: 2
 
   # ==========================================
@@ -223,10 +223,10 @@ jobs:
           python-version: '3.13'
       - run: pip install -r requirements.txt
       - name: Create settings.json
-        working-directory: ./real-estate-project
+        working-directory: ./listing-scraper
         run: echo "${{ env.ACTIVE_SETTINGS_JSON }}" > settings.json
       - name: Run Leftover Scraper
-        working-directory: ./real-estate-project
+        working-directory: ./listing-scraper
         run: python jobs/run_investments.py '${{ toJSON(matrix.urls) }}'
       - name: Upload Leftover Chunk Artifacts
         if: always()
@@ -234,9 +234,9 @@ jobs:
         with:
           name: scraper-results-leftover-${{ strategy.job-index }}
           path: |
-            real-estate-project/*.csv
-            real-estate-project/*.xlsx
-            real-estate-project/scraped_investments.txt
+            listing-scraper/*.csv
+            listing-scraper/*.xlsx
+            listing-scraper/scraped_investments.txt
           retention-days: 2
 
 
@@ -266,7 +266,7 @@ jobs:
           path: all_data
 
       - name: Run Merge Script
-        working-directory: ./real-estate-project
+        working-directory: ./listing-scraper
         # Assuming your merge runner is here
         run: python jobs/run_merge.py
 
@@ -275,6 +275,6 @@ jobs:
         with:
           name: final-scraper-results
           path: |
-            real-estate-project/master_listings.csv
-            real-estate-project/master_listings.xlsx
+            listing-scraper/master_listings.csv
+            listing-scraper/master_listings.xlsx
           retention-days: 7
