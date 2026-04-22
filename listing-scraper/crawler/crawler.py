@@ -17,6 +17,7 @@ from services import connect_to_database
 from services import PropertyService
 from settings import Settings
 from services import NetworkService
+from services import OtodomParser
 
 logger = logging.getLogger(__name__)
 
@@ -102,32 +103,8 @@ class Crawler:
 
         with open("debug_page.html", "w", encoding="utf-8") as f:
             f.write(html)
-
-        match = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', html, re.DOTALL)
-        if match:
-            try:
-                data = json.loads(match.group(1))
-
-                # Check if this is an investment page with paginatedUnits
-                ad_data = data["props"]["pageProps"].get("ad", {})
-                if "paginatedUnits" in ad_data:
-                    listing_data = ad_data["paginatedUnits"]
-                    page_count = listing_data["pagination"]["totalPages"]
-                    item_count = listing_data["pagination"].get("totalResults", 0)
-                else:
-                    # Standard search results
-                    page_count = data["props"]["pageProps"]["tracking"]["listing"]["page_count"]
-                    listing_data = data["props"]["pageProps"]["tracking"]["listing"]
-                    item_count = listing_data.get("result_count", 0)
-
-                return int(page_count), int(item_count)
-
-            except (KeyError, TypeError, ValueError) as e:
-                logger.error(f"Error parsing pagination JSON: {e}")
-                return 0, 0
-        else:
-            logger.warning(f"Could not find __NEXT_DATA__ script tag.")
-            return 0, 0
+        # Hand the HTML to the Parser
+        return OtodomParser.parse_page_count(response.text)
 
     def extract_listings_from_page(self, page: int, override_url: str = None) -> list:
         """
@@ -137,36 +114,14 @@ class Crawler:
         params["page"] = page
         url = override_url if override_url else self.generate_search_url()
         # NetworkService handles requests
-        response = self.network.get(url=url, params=params)
-
         logger.info(f"Extracting listings from page {page}")
+        response = self.network.get(url=url, params=params)
 
         if not response:
             logger.error(f"CRITICAL: Failed to extract page {page}. Skipping page.")
             return []
-        html = response.text
-        marker = 'id="__NEXT_DATA__"'
-
-        if marker in html:
-            tag_start = html.find(marker)
-            json_start = html.find('>', tag_start) + 1
-            json_end = html.find('</script>', json_start)
-
-            json_text = html[json_start:json_end].strip()
-            data = json.loads(json_text)
-
-            ad_data = data["props"]["pageProps"].get("ad", {})
-            if "paginatedUnits" in ad_data:
-                items = ad_data["paginatedUnits"]["items"]
-                return items
-            else:
-                items = data["props"]["pageProps"]["data"]["searchAds"]["items"]
-                return items
-
-
-        else:
-            logger.warning(f"__NEXT_DATA__ not found on page {page}. Status Code: {response.status_code}")
-            return []
+        # Hand the HTML to the Parser
+        return OtodomParser.parse_listings(response.text)
 
     def extract_listing_data(self, listing_data: BeautifulSoup) -> None:
         """
@@ -278,13 +233,10 @@ class Crawler:
                 time.sleep(random.uniform(2.0, 4.0))
 
                 # 1. Fetch the HTML of the investment page directly
-                response = self.session.get(investment_url, timeout=15)
-                if response.status_code in [403, 405, 429]:
-                    cooldown = random.uniform(600.0, 660.0)
-                    logger.warning(f"DATADOME BLOCK on investment {investment_url}. Sleeping {cooldown / 60:.2f}m...")
-                    time.sleep(cooldown)
-                    self.session = requests.Session(impersonate="chrome120")
-                    continue
+                response = self.network.get(investment_url, timeout=15)
+
+                if not response:
+                    raise DataExtractionError(url=investment_url)
 
                 html = response.text
 

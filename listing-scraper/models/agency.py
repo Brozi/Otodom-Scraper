@@ -1,7 +1,7 @@
 import json
 import re
 
-from bs4 import ResultSet
+from bs4 import BeautifulSoup
 from mongoengine import Document
 from mongoengine import IntField
 from mongoengine import StringField
@@ -22,7 +22,7 @@ class AgencyDocument(Document):
 
     meta = {"collection": "Agencies"}
 
-    def extract_data(self, code: ResultSet):
+    def extract_data(self, code: BeautifulSoup):
         """
         Extracts data from the page and updates the property instance.
 
@@ -58,6 +58,7 @@ class AgencyDocument(Document):
         3. _ , street, city, postal_code
 
         :param properties: The properties containing the estate agency details
+        :param agency_data: The JSON data for the agency
         :return: The details of the estate agency
         """
         address_regex = r"^(.*?), (\d{2}-\d{3}), (.*), (.*), (.*)$"
