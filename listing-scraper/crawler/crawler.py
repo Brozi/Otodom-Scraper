@@ -1,8 +1,6 @@
 import concurrent.futures
-import csv
 import logging
 import json
-import re
 import random
 
 from curl_cffi import requests
@@ -672,44 +670,6 @@ class Crawler:
             import logging
             logger.error(f"Failed to map JSON for unit {full_url}: {e}")
             return False
-
-    def to_csv_file(self, filename: str) -> None:
-        """
-        Saves the listings to a CSV file.
-
-        :param filename: The name of the file
-        """
-        valid_listings = [listing for listing in self.listings if listing.property_ is not None]
-
-        if not valid_listings:
-            print("No new valid listings to save to CSV in this chunk.")
-            return
-
-        # UPDATE THIS: Use the filtered valid_listings instead of self.listings
-
-        logger.info(f"Saving listings to {filename}. Format: csv")
-        data = [listing.to_dict() for listing in valid_listings]
-
-        with open(filename, "w", newline="", encoding="utf-8") as file:
-            dict_writer = csv.DictWriter(file, Constans.CSV_KEYS)
-            dict_writer.writeheader()
-            dict_writer.writerows(data)
-
-    def to_json_file(self, filename: str) -> None:
-        """
-        Saves the listings to a JSON file.
-
-        :param filename: The name of the file
-        """
-        logger.info(f"Saving listings to {filename}. Format: json")
-        with open(filename, "w", encoding="utf-8") as file:
-            json.dump(
-                [listing.to_dict() for listing in self.listings],
-                file,
-                ensure_ascii=False,
-                default=str,
-                indent=4,
-            )
 
     def start(self, pages: int) -> None:
         """

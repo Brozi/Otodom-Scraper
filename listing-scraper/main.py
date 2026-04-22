@@ -6,6 +6,9 @@ import sys
 import datetime
 import logging
 
+from jobs import export_to_github_actions
+from services import ExportService
+
 
 class TerminalLogger:
     def __init__(self, filename, stream):
@@ -88,6 +91,7 @@ def scrape_dynamic_chunk(crawler, current_min, current_max, master_list):
 
 
 def main():
+    export_service = ExportService()
     base_crawler = Crawler()
 
     # 1. Read the EXACT range assigned to this specific GitHub Action runner
@@ -121,10 +125,8 @@ def main():
 
         if hasattr(base_crawler, 'listings'):
             base_crawler.listings = all_listings
-            base_crawler.to_csv_file("listings.csv")
-            from pandas import DataFrame, read_csv
-            df = read_csv("listings.csv")
-            df.to_excel("listings.xlsx", index=False)
+            export_service.to_csv_file(all_listings,"listings.csv")
+            export_service.to_excel_file(all_listings,"listings.xlsx")
         else:
             print("Could not find the listings list to save the CSV.")
 

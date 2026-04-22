@@ -3,7 +3,7 @@ import json
 from crawler.crawler import Crawler
 import logging
 import time
-import os
+from services import ExportService
 
 logging.basicConfig(
     level=logging.INFO,
@@ -29,15 +29,11 @@ def main():
     timestamp = int(time.time())
     csv_filename = f"listings_{timestamp}.csv"
     excel_filename = f"listings_{timestamp}.xlsx"
+    listings = crawler.listings
+    export_service = ExportService()
 
-    crawler.to_csv_file(csv_filename)
-    from pandas import read_csv
-    if os.path.exists(csv_filename):
-        df = read_csv(csv_filename)
-        df.to_excel(excel_filename, index=False)
-    else:
-        print(f"No CSV generated (0 new listings found). Skipping read.")
-
+    export_service.to_csv_file(listings,csv_filename)
+    export_service.to_excel_file(listings,excel_filename)
 
 if __name__ == "__main__":
     main()
