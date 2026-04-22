@@ -273,7 +273,7 @@ class Crawler:
                     logger.warning(f"Stealth block detected on {investment_url}. Sleeping 5 minutes...")
                     import time
                     time.sleep(300)
-                    self.session = requests.Session(impersonate="chrome120")
+                    self.network.rotate_session()
                     continue  # Skips the rest of the loop, leaving the URL in the queue to try again!
                 # -------------------------------
 
@@ -294,11 +294,6 @@ class Crawler:
 
                     page = 2
                     while page <= total_pages:
-                        import time, random
-                        import json
-
-                        time.sleep(random.uniform(2.5, 4.5))
-
                         # Build the exact variables JSON required by their server
                         variables = {
                             "id": int(investment_id),
@@ -331,66 +326,57 @@ class Crawler:
                         }
 
                         logger.info(f"Fetching API page {page} for {investment_url}")
-                        next_res = self.session.get(
+                        next_res = self.network.get(
                             f"{self.settings.base_url}/api/query",
                             params=params,
                             headers=headers,
-                            timeout=15
+                            delay_range=(2.5,4.5)
                         )
 
-                        if next_res.status_code == 200:
-                            try:
-                                next_data = next_res.json()
-
-                                # 1. Print GraphQL errors if the server rejected our request
-                                if "errors" in next_data:
-                                    logger.error(f"GraphQL Errors on page {page}: {next_data['errors']}")
-                                    # --- APQ CACHE MISS RETRY LOGIC ---
-                                    error_code = next_data["errors"][0].get("extensions", {}).get("code")
-                                    if error_code == "PERSISTED_QUERY_NOT_FOUND":
-                                        logger.warning(
-                                            "Otodom server forgot the GraphQL hash. Retrying in 10 seconds...")
-                                        import time
-                                        time.sleep(10)
-                                        continue  # Loops back to retry the EXACT SAME page number
-                                    # ----------------------------------
-
-                                # 2. Safely extract data (using 'or {}' handles null/None values)
-                                data_block = next_data.get("data") or {}
-                                paginated_units = data_block.get("paginatedUnits") or {}
-                                next_items = paginated_units.get("items") or []
-
-                                # --- NEW STEALTH BLOCK CHECK ---
-                                if next_items and any(unit.get("target") is None for unit in next_items):
-                                    logger.warning(f"Stealth API block on page {page}. Sleeping 5 minutes...")
-                                    time.sleep(300)
-                                    self.session = requests.Session(impersonate="chrome120")
-                                    continue  # Loops back to retry the EXACT SAME page number
-                                # -------------------------------
-
-                                print(f"     API: Page {page} retrieved {len(next_items)} units.")
-
-                                saved_count = 0
-                                for unit_dict in next_items:
-                                    # Your existing extract_unit_from_json takes (unit_dict, investment_url)
-                                    was_saved = self.extract_unit_from_json(unit_dict, investment_url, main_location, developer_id)
-                                    if was_saved:
-                                        saved_count += 1
-
-                                print(f" Page {page}: saved {saved_count}/{len(next_items)} units")
-                                page += 1  # SUCCESS: move to the next page
-                            except Exception as e:
-                                    logger.error(f"Error parsing API JSON on page {page}: {e}")
-                                    page += 1  # Skip broken page to avoid infinite loop
-                        else:
-                            logger.warning(f"API returned status {next_res.status_code} for page {page}.")
-                            if next_res.status_code in [403, 405, 429]:
-                                cooldown = random.uniform(600.0, 660.0)
-                                logger.warning(f"DATADOME BLOCK on API. Sleeping {cooldown / 60:.2f}m...")
-                                time.sleep(cooldown)
-                                self.session = requests.Session(impersonate="chrome120")
-                                continue  # Retry the EXACT SAME page number
+                        if not next_res:
                             page += 1
+                            continue
+
+                        try:
+                            next_data = next_res.json()
+                            # 1. Print GraphQL errors if the server rejected our request
+                            # --- APQ CACHE MISS RETRY LOGIC ---
+                            if "errors" in next_data:
+                                logger.error(f"GraphQL Errors on page {page}: {next_data['errors']}")
+                                error_code = next_data["errors"][0].get("extensions", {}).get("code")
+                                if error_code == "PERSISTED_QUERY_NOT_FOUND":
+                                    logger.warning("Otodom server forgot the GraphQL hash. Retrying in 10 seconds...")
+                                    import time
+                                    time.sleep(10)
+                                    continue  # Loops back to retry the EXACT SAME page number
+                            # ----------------------------------
+
+                            # 2. Safely extract data (using 'or {}' handles null/None values)
+                            data_block = next_data.get("data") or {}
+                            paginated_units = data_block.get("paginatedUnits") or {}
+                            next_items = paginated_units.get("items") or []
+
+                            # --- NEW STEALTH BLOCK CHECK ---
+                            if next_items and any(unit.get("target") is None for unit in next_items):
+                                logger.warning(f"Stealth API block on page {page}. Sleeping 5 minutes...")
+                                time.sleep(300)
+                                self.network.rotate_session()
+                                continue  # Loops back to retry the EXACT SAME page number
+                            # -------------------------------
+
+                            print(f"     API: Page {page} retrieved {len(next_items)} units.")
+
+                            saved_count = 0
+                            for unit_dict in next_items:
+                                was_saved = self.extract_unit_from_json(unit_dict, investment_url, main_location, developer_id)
+                                if was_saved:
+                                    saved_count += 1
+
+                            print(f" Page {page}: saved {saved_count}/{len(next_items)} units")
+                            page += 1  # SUCCESS: move to the next page
+                        except Exception as e:
+                            logger.error(f"Error parsing API JSON on page {page}: {e}")
+                            page += 1  # Skip broken page to avoid infinite loop
 
                 # Remove from queue once successfully processed
                 with open("scraped_investments.txt", "a", encoding="utf-8") as f:
