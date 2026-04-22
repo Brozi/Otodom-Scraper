@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 
-from bs4 import ResultSet
+from bs4 import BeautifulSoup
 from common import AUCTION_TYPE_MAP
 from common import AuctionType
 from common import Constans
@@ -18,7 +18,6 @@ from mongoengine import Document
 from mongoengine import EmbeddedDocumentField
 from mongoengine import EnumField
 from mongoengine import FloatField
-from mongoengine import ListField
 from mongoengine import IntField
 from mongoengine import NULLIFY
 from mongoengine import ReferenceField
@@ -64,7 +63,7 @@ class PropertyDocument(Document):
             ]
             }
 
-    def extract_data(self, code: ResultSet) -> None:
+    def extract_data(self, code: BeautifulSoup) -> None:
         """
         Extracts data from the page and updates the property instance.
 
@@ -110,7 +109,7 @@ class PropertyDocument(Document):
         self.building = self.extract_building(listing_properties["target"])
         self.offered_by = self.extract_offered_by(listing_properties)
 
-    def set_link(self, code: ResultSet) -> None:
+    def set_link(self, code: BeautifulSoup) -> None:
         """
         Set the listing link from the HTML code.
 
@@ -118,7 +117,7 @@ class PropertyDocument(Document):
         """
         self.link = Constans.DEFAULT_URL + code.select_one("a")["href"]
 
-    def set_promoted(self, code: ResultSet) -> bool:
+    def set_promoted(self, code: BeautifulSoup) -> bool:
         """
         Determines whether the property is promoted on the page.
 
@@ -126,9 +125,10 @@ class PropertyDocument(Document):
         :return: True if the property is promoted on the page, False otherwise
         """
         self.promoted = code.select_one("article>span+div") is not None
+        return self.promoted
 
     @staticmethod
-    def extract_link(code: ResultSet) -> None:
+    def extract_link(code: BeautifulSoup) -> None:
         """
         Set the listing link from the HTML code.
 
@@ -199,7 +199,7 @@ class PropertyDocument(Document):
             return OfferedBy.ESTATE_AGENCY
 
     @staticmethod
-    def informational_json_exists(code: ResultSet) -> bool:
+    def informational_json_exists(code: BeautifulSoup) -> bool:
         """
         Checks if the JSON with informations about the property
         in the returned data from the request is available.

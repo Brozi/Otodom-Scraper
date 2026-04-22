@@ -1,11 +1,11 @@
 import concurrent.futures
 import logging
 import json
+import re
 import random
 
 from curl_cffi import requests
 from bs4 import BeautifulSoup
-from bs4 import ResultSet
 from common import Constans
 from common import OfferedBy
 from crawler.exceptions import DataExtractionError
@@ -16,6 +16,7 @@ from services import AgencyService
 from services import connect_to_database
 from services import PropertyService
 from settings import Settings
+from services import NetworkService
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,7 @@ class Crawler:
         """
         Initialize the crawler.
         """
-        self.session = requests.Session(impersonate="chrome120")
+        self.network = NetworkService()
         self.settings: Settings = Settings()
         self.params: dict = self.generate_params()
         self.listings: list[Listing] = []
@@ -87,61 +88,46 @@ class Crawler:
         """
         Count the number of pages to crawl using Regex to bypass HTML parser limits.
         """
-        max_retries = 3
-        while max_retries > 0:
-            delay = random.uniform(6.0, 10.0)
-            print(f"Delaying page count request by {delay:.2f} seconds...")
-            import time
-            time.sleep(delay)
+        # USE the override_url if provided, otherwise generate the normal search URL
+        search_url = override_url if override_url else self.generate_search_url()
+        print("\n--- Initializing Search ---")
+        logger.info("Counting pages to crawl...")
+        # The NetworkService will automatically print:
+        # "Delaying GET request by X.XX seconds... (Attempt 1/3)"
+        response = self.network.get(url=search_url, params=self.params, timeout=20)
+        if not response:
+            raise Exception("CRITICAL: Failed to count pages. IP might be blocked.")
+        html = response.text
+        print(f"Status: {response.status_code}, Length: {len(html)}")
 
-            logger.info(f"Counting pages to crawl, try: {4 - max_retries}/3")
+        with open("debug_page.html", "w", encoding="utf-8") as f:
+            f.write(html)
 
-            # USE the override_url if provided, otherwise generate the normal search URL
-            search_url = override_url if override_url else self.generate_search_url()
+        match = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', html, re.DOTALL)
+        if match:
+            try:
+                data = json.loads(match.group(1))
 
-            response = self.session.get(url=search_url, params=self.params, timeout=20)
-            html = response.text
-            print(f"Status: {response.status_code}, Length: {len(html)}")
-            if response.status_code in [403, 405, 429]:
-                cooldown = random.uniform(600.0, 660.0)
-                print(f"\nDATADOME BLOCK DETECTED! Sleeping {cooldown / 60:.2f}min to clear the penalty box... ")
-                import time
-                time.sleep(cooldown)
-                self.session = requests.Session(impersonate="chrome120")  # Get fresh browser
-                max_retries -= 1
-                continue
+                # Check if this is an investment page with paginatedUnits
+                ad_data = data["props"]["pageProps"].get("ad", {})
+                if "paginatedUnits" in ad_data:
+                    listing_data = ad_data["paginatedUnits"]
+                    page_count = listing_data["pagination"]["totalPages"]
+                    item_count = listing_data["pagination"].get("totalResults", 0)
+                else:
+                    # Standard search results
+                    page_count = data["props"]["pageProps"]["tracking"]["listing"]["page_count"]
+                    listing_data = data["props"]["pageProps"]["tracking"]["listing"]
+                    item_count = listing_data.get("result_count", 0)
 
-            with open("debug_page.html", "w", encoding="utf-8") as f:
-                f.write(html)
+                return int(page_count), int(item_count)
 
-            import re, json
-            match = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', html, re.DOTALL)
-            if match:
-                try:
-                    data = json.loads(match.group(1))
-
-                    # Check if this is an investment page with paginatedUnits
-                    ad_data = data["props"]["pageProps"].get("ad", {})
-                    if "paginatedUnits" in ad_data:
-                        listing_data = ad_data["paginatedUnits"]
-                        page_count = listing_data["pagination"]["totalPages"]
-                        item_count = listing_data["pagination"].get("totalResults", 0)
-                    else:
-                        # Standard search results
-                        page_count = data["props"]["pageProps"]["tracking"]["listing"]["page_count"]
-                        listing_data = data["props"]["pageProps"]["tracking"]["listing"]
-                        item_count = listing_data.get("result_count", 0)
-
-                    return int(page_count), int(item_count)
-
-                except (KeyError, TypeError, ValueError) as e:
-                    logger.error(f"Error parsing pagination JSON: {e}")
-                    return 0, 0
-            else:
-                logger.warning(f"Could not find __NEXT_DATA__ script tag.")
+            except (KeyError, TypeError, ValueError) as e:
+                logger.error(f"Error parsing pagination JSON: {e}")
                 return 0, 0
-
-        raise Exception("CRITICAL: Failed to count pages 3 times. IP is temporarily blocked.")
+        else:
+            logger.warning(f"Could not find __NEXT_DATA__ script tag.")
+            return 0, 0
 
     def extract_listings_from_page(self, page: int, override_url: str = None) -> list:
         """
@@ -150,66 +136,39 @@ class Crawler:
         params = self.params.copy()
         params["page"] = page
         url = override_url if override_url else self.generate_search_url()
+        # NetworkService handles requests
+        response = self.network.get(url=url, params=params)
 
-        import time, random
-        # Change max_retries to 1. If it blocks us, try ONE more time, then abandon the page.
-        max_retries = 3
+        logger.info(f"Extracting listings from page {page}")
 
-        while max_retries >= 0:
-            page_delay = random.uniform(6.0, 10.0)
-            print(f" Delaying page {page} request by {page_delay:.2f} seconds...")
-            time.sleep(page_delay)
+        if not response:
+            logger.error(f"CRITICAL: Failed to extract page {page}. Skipping page.")
+            return []
+        html = response.text
+        marker = 'id="__NEXT_DATA__"'
 
-            try:
-                response = self.session.get(
-                    url=url, params=params, timeout=15)
+        if marker in html:
+            tag_start = html.find(marker)
+            json_start = html.find('>', tag_start) + 1
+            json_end = html.find('</script>', json_start)
 
-                if response.status_code in [403, 405, 429]:
-                    # We now know the penalty box is roughly 10 minutes.
-                    # Let's just wait it out completely so we don't lose ANY pages!
-                    cooldown = random.uniform(600.0, 660.0)  # 10 to 11 minutes
-                    logger.warning(
-                        f"DATADOME BLOCK on page {page}! Sleeping {cooldown / 60:.2f} minutes to clear the penalty box...")
-                    time.sleep(cooldown)
-                    self.session = requests.Session(impersonate="chrome120")
-                    max_retries -= 1
-                    continue
+            json_text = html[json_start:json_end].strip()
+            data = json.loads(json_text)
 
-                logger.info(f"Extracting listings from page {page}")
-                html = response.text
-                marker = 'id="__NEXT_DATA__"'
-
-                if marker in html:
-                    tag_start = html.find(marker)
-                    json_start = html.find('>', tag_start) + 1
-                    json_end = html.find('</script>', json_start)
-
-                    json_text = html[json_start:json_end].strip()
-                    data = json.loads(json_text)
-
-                    ad_data = data["props"]["pageProps"].get("ad", {})
-                    if "paginatedUnits" in ad_data:
-                        items = ad_data["paginatedUnits"]["items"]
-                        return items
-                    else:
-                        items = data["props"]["pageProps"]["data"]["searchAds"]["items"]
-                        return items
+            ad_data = data["props"]["pageProps"].get("ad", {})
+            if "paginatedUnits" in ad_data:
+                items = ad_data["paginatedUnits"]["items"]
+                return items
+            else:
+                items = data["props"]["pageProps"]["data"]["searchAds"]["items"]
+                return items
 
 
-                else:
-                    logger.warning(f"__NEXT_DATA__ not found on page {page}. Status Code: {response.status_code}")
-                    time.sleep(5)
-                    max_retries -= 1
+        else:
+            logger.warning(f"__NEXT_DATA__ not found on page {page}. Status Code: {response.status_code}")
+            return []
 
-            except Exception as e:
-                logger.warning(f"Error extracting items on page {page}: {e}")
-                time.sleep(5)
-                max_retries -= 1
-
-        logger.error(f"CRITICAL: Failed to extract page {page} after 3 retries. Skipping page.")
-        return []
-
-    def extract_listing_data(self, listing_data: ResultSet) -> None:
+    def extract_listing_data(self, listing_data: BeautifulSoup) -> None:
         """
         Extract the data from the given listing.
 
@@ -271,8 +230,6 @@ class Crawler:
         # --- NEW SAFETY NET END ---
 
     def try_get_listing_page(self, url: str) -> BeautifulSoup:
-        import time
-        import random
         """
         Tries to get the listing page.
 
@@ -282,32 +239,18 @@ class Crawler:
         :raises DataExtractionError: If the data extraction fails
         :return: The data from the listing
         """
-        max_retries = 3
-        while max_retries > 0:
-            # 1. Add a random delay before opening the apartment page
-            time.sleep(random.uniform(1.0,  2.5))
+        response = self.network.get(url=url, delay_range=(1.0, 2.5))
 
-            try:
-                response = self.session.get(
-                    url=url,
-                    timeout=15)
+        if not response:
+            raise DataExtractionError(url=url)
 
-                soup = BeautifulSoup(response.content, "html.parser")
+        soup = BeautifulSoup(response.content, "html.parser")
 
-                if not PropertyDocument.informational_json_exists(soup):
-                    logger.warning(f"Blocked or missing JSON on {url}. Retrying...")
-                    time.sleep(3)  # Wait longer if we got blocked
-                    max_retries -= 1
-                    continue
+        if not PropertyDocument.informational_json_exists(soup):
+            logger.warning(f"Missing JSON on {url}.")
+            raise DataExtractionError(url=url)
 
-                return soup
-
-            except Exception as e:
-                logger.warning(f"Connection error on {url}: {e}")
-                time.sleep(3)
-                max_retries -= 1
-
-        raise DataExtractionError(url=url)
+        return soup
 
     def process_investment_queue(self):
         """
@@ -326,7 +269,7 @@ class Crawler:
         for investment_url in list(self.investments_queue):
             if processed_count > 0 and processed_count % 5 == 0:
                 print(f"\n[INVESTMENT] Processed 5 investments. Forcing session rotation to avoid blocks...")
-                self.rotate_session()
+                self.network.rotate_session()
 
             processed_count += 1
             try:
@@ -680,7 +623,7 @@ class Crawler:
 
         for page in range(1, pages + 1):
             if page % 15 == 0:
-                self.rotate_session()
+                self.network.rotate_session()
             # 1. Fetch ONE search page
             page_items = self.extract_listings_from_page(page)
 
@@ -712,21 +655,3 @@ class Crawler:
             print(f"Sleeping {delay:.2f}s before loading the next search page...")
             import time
             time.sleep(delay)
-
-    def rotate_session(self):
-        """Drops the current session cookies and generates a fresh browser fingerprint."""
-        print("\n[ANTI-BOT] Rotating main crawler session to clear velocity history...")
-
-        # Close the existing session
-        if hasattr(self, 'session') and self.session:
-            self.session.close()
-
-        # Take a long breather to reset the IP trust score
-        cooldown = random.uniform(35.0, 60.0)
-        print(f"[ANTI-BOT] IP cooling down for {cooldown:.2f} seconds...")
-        import time
-        time.sleep(cooldown)
-
-        # Start a brand new session with a modern browser profile
-        self.session = requests.Session(impersonate="chrome120")
-        print("[ANTI-BOT] New session acquired. Resuming scrape...\n")
