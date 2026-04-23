@@ -58,8 +58,11 @@ class PropertyDocument(Document):
 
     meta = {"collection": "Properties",
             "indexes":[
-                "localization.location"
-
+                "localization.location",
+                "localization.district",
+                "localization.city",
+                "price",
+                "area",
             ]
             }
 

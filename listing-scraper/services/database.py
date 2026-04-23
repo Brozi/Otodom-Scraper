@@ -1,6 +1,5 @@
 import json
 import logging
-
 from mongoengine import connect as mongo_connect
 
 logger = logging.getLogger(__name__)
