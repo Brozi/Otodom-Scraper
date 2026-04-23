@@ -10,8 +10,7 @@ from services import PropertyService
 from settings import Settings
 from services import NetworkService
 from services import OtodomParser
-from services.investment import InvestmentProcessor
-from services.listing_processor import ListingProcessor
+
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +22,9 @@ class Crawler:
         self.params: dict = self.generate_params()
         self.listings: list[Listing] = []
         self.investments_queue: set[str] = set()
-
+        from services.investment import InvestmentProcessor
+        from services.listing_processor import ListingProcessor
+        #Move imports to avoid circular import issue
         self.listing_processor = ListingProcessor(self.network, self.listings)
         self.investment_processor = InvestmentProcessor(self.network, self.settings, self.listings)
 
