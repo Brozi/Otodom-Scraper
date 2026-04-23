@@ -29,7 +29,7 @@ def main():
     for url in urls:
         crawler.investments_queue.add(url)
 
-    crawler.investment_processor.process_queue()
+    crawler.investment_processor.process_queue(crawler.investments_queue)
 
     timestamp = int(time.time())
     csv_filename = f"listings_{timestamp}.csv"
