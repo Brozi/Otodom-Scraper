@@ -59,6 +59,8 @@ class ExportService:
         logger.info(f"Saving listings to {filename}. Format: xlsx")
         data = [listing.to_dict() for listing in valid_listings]
         df = DataFrame(data)
+        for col in df.select_dtypes(include=['datetimetz']).columns:
+            df[col] = df[col].dt.tz_localize(None)
         df.to_excel(filename, index=False)
     @staticmethod
     def db_to_json_file(filename: str, include_agencies: bool = False) -> None:
