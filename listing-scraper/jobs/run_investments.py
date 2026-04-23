@@ -11,6 +11,11 @@ logging.basicConfig(
     stream=sys.stdout
 
 )
+"""
+This script is used for processing investments found by run_inv_discovery.py, and 
+for processing hidden investments added to found_investments.txt during normal
+crawler operation.
+"""
 
 
 def main():
@@ -24,7 +29,7 @@ def main():
     for url in urls:
         crawler.investments_queue.add(url)
 
-    crawler.process_investment_queue()
+    crawler.investment_processor.process_queue()
 
     timestamp = int(time.time())
     csv_filename = f"listings_{timestamp}.csv"
