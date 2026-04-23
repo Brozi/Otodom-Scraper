@@ -1,10 +1,7 @@
 import concurrent.futures
 import logging
-import json
-import re
 import random
 
-from curl_cffi import requests
 from bs4 import BeautifulSoup
 from common import Constans
 from common import OfferedBy
@@ -20,20 +17,6 @@ from services import NetworkService
 from services import OtodomParser
 
 logger = logging.getLogger(__name__)
-
-HEADERS = {
-    # "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-    # "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-    # "Accept-Language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
-    # "Accept-Encoding": "gzip, deflate, br",
-    # "Connection": "keep-alive",
-    # "Upgrade-Insecure-session": "1",
-    # "Sec-Fetch-Dest": "document",
-    # "Sec-Fetch-Mode": "navigate",
-    # "Sec-Fetch-Site": "none",
-    # "Sec-Fetch-User": "?1",
-    # "Cache-Control": "max-age=0",
-}
 
 
 class Crawler:
@@ -497,7 +480,7 @@ class Crawler:
             property_.photos = ", ".join(filter(None, photo_urls))
             property_.description = unit_dict.get("description", "Brak opisu (oferta deweloperska).")
 
-            # --- LOCALIZATION EXTRACTION (USING PARENT INVESMENT DATA) ---
+            # --- LOCALIZATION EXTRACTION (USING PARENT INVESTMENT DATA) ---
             from models.localization import LocalizationDocument
             loc = LocalizationDocument()
 
