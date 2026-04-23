@@ -1,1 +1,2 @@
 from .investment_mapper import InvestmentMapper
+from .investment_processor import InvestmentProcessor

@@ -10,7 +10,7 @@ from services import PropertyService
 from settings import Settings
 from services import NetworkService
 from services import OtodomParser
-from services.investment.investment_processor import InvestmentProcessor
+from services.investment import InvestmentProcessor
 from services.listing_processor import ListingProcessor
 
 logger = logging.getLogger(__name__)
