@@ -91,7 +91,7 @@ class Constans:
         "localization_longitude",
         "localization_location_type",
         "localization_location_coordinates_0",
-        "localization_location_coordinates_1"
+        "localization_location_coordinates_1",
         "localization_province",
         "localization_street",
         "market_type",
