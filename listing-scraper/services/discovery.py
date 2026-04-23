@@ -29,19 +29,7 @@ class RangeDiscoverer:
 
         if self.request_count >= self.max_requests_per_session:
             print(f"\n[ANTI-BOT] Made {self.max_requests_per_session} requests. Rotating session identity...")
-
-            # 1. Destroy the old session (clear cookies)
-            crawler.session.close()
-
-            # 2. Take a "coffee break" to let the IP cool down
-            cooldown = random.uniform(45.0, 90.0)
-            print(f"[ANTI-BOT] Sleeping for {cooldown:.2f} seconds before acquiring new clearance...")
-            time.sleep(cooldown)
-
-            # 3. Spin up a brand new session for the next batch
-            crawler.session = requests.Session(impersonate="chrome120")
-
-            # 4. Reset counter
+            crawler.network.rotate_session()
             self.request_count = 0
             print("[ANTI-BOT] Session rotated successfully. Resuming discovery...\n")
 
