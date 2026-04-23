@@ -5,6 +5,7 @@ import re
 import sys
 import datetime
 import logging
+import os
 
 from jobs import export_to_github_actions
 from services import ExportService
@@ -13,6 +14,9 @@ from services import ExportService
 class TerminalLogger:
     def __init__(self, filename, stream):
         self.terminal = stream
+        log_dir = os.path.dirname(filename)
+        if log_dir:
+            os.makedirs(log_dir, exist_ok=True)
         self.log_file = open(filename, "a", encoding="utf-8")
         self.ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
