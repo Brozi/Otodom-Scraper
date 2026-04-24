@@ -8,7 +8,7 @@
         "district": " ",
         "province" : "malopolskie",
         "city": "krakow",
-        "property_type": "flat",
+        "property_type": ["flat", "house"],
         "auction_type": "sale",
         "_comments": {
             "max_listings_per_chunk": "Recommended < 3000, read more in README.md",

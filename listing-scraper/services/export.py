@@ -44,6 +44,9 @@ class ExportService:
             )
     @staticmethod
     def to_excel_file(filename: str) -> None:
+        filename_csv = filename.removesuffix(".xlsx")
+        filename_csv += ".csv"
+        filename_xlsx = filename + ".xlsx"
         from pandas import read_csv
         """
         Saves the listings to a JSON file.
@@ -52,15 +55,15 @@ class ExportService:
         :param listings: Listings to save
         """
 
-        logger.info(f"Saving listings to {filename}. Format: xlsx")
+        logger.info(f"Saving listings to {filename}.xlsx. Format: xlsx")
         try:
 
-            df = read_csv(filename,encoding="utf-8")
-            df.to_excel(filename, index=False)
+            df = read_csv(filename_csv,encoding="utf-8")
+            df.to_excel(filename_xlsx, index=False)
         except FileNotFoundError:
-            filename = filename.strip(".xlsx")
-            logger.error(f"Cannot export to Excel: The root file {filename} was not found.")
-            print(f"Error: The file {filename} was not found.")
+
+            logger.error(f"Cannot export to Excel: The root file {filename_csv} was not found.")
+            print(f"Error: The file {filename_csv} was not found.")
     @staticmethod
     def db_to_json_file(filename: str, include_agencies: bool = False) -> None:
         """
