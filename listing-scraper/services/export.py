@@ -48,8 +48,8 @@ class ExportService:
             )
     @staticmethod
     def to_excel_file(filename: str) -> None:
-        filename_csv = filename.removesuffix(".xlsx")
-        filename_csv += ".csv"
+        filename = filename.removesuffix(".xlsx")
+        filename_csv = filename + ".csv"
         filename_xlsx = filename + ".xlsx"
         from pandas import read_csv
         """

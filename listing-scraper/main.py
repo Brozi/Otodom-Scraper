@@ -82,13 +82,12 @@ def scrape_dynamic_chunk(crawler, current_min, current_max, master_list):
 
         crawler.start(pages)
 
-        # ADD THIS BLOCK to process investments found in this chunk:
-        if hasattr(crawler, 'investments_queue') and crawler.investments_queue:
-            crawler.process_investment_queue()
-
         if hasattr(crawler, 'listings'):
             master_list.extend(crawler.listings)
             crawler.listings = []
+        # ADD THIS BLOCK to process investments found in this chunk:
+        if hasattr(crawler, 'investments_queue') and crawler.investments_queue:
+            crawler.process_investment_queue()
 
         print(f"Waiting ~30 seconds before the next chunk...")
         time.sleep(random.uniform(45.00, 60.00))
