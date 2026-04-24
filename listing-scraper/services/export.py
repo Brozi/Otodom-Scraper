@@ -15,7 +15,11 @@ class ExportService:
         :param filename: The name of the file
         :param listings: Listings to save
         """
+        print(f"DEBUG: Export received {len(listings)} total listings from memory.")
+
         valid_listings = [listing for listing in listings if listing.property_ is not None]
+
+        print(f"DEBUG: {len(listings) - len(valid_listings)} listings were dropped because property_ was None.")
         if not valid_listings:
             print("No new valid listings to save to CSV in this chunk.")
             return
