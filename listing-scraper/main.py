@@ -130,7 +130,7 @@ def main():
         if hasattr(base_crawler, 'listings'):
             base_crawler.listings = all_listings
             export_service.to_csv_file(all_listings,"listings.csv")
-            export_service.to_excel_file(all_listings,"listings.xlsx")
+            export_service.to_excel_file("listings.xlsx")
         else:
             print("Could not find the listings list to save the CSV.")
 

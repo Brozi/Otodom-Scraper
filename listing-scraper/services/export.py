@@ -43,25 +43,24 @@ class ExportService:
                 file, ensure_ascii=False, default=str, indent=4
             )
     @staticmethod
-    def to_excel_file(listings: list, filename: str) -> None:
-        from pandas import DataFrame
+    def to_excel_file(filename: str) -> None:
+        from pandas import read_csv
         """
         Saves the listings to a JSON file.
 
         :param filename: The name of the file
         :param listings: Listings to save
         """
-        valid_listings = [listing for listing in listings if listing.property_ is not None]
-        if not valid_listings:
-            print("No new valid listings to save to XLSX in this chunk.")
-            return
 
         logger.info(f"Saving listings to {filename}. Format: xlsx")
-        data = [listing.to_dict() for listing in valid_listings]
-        df = DataFrame(data)
-        for col in df.select_dtypes(include=['datetimetz']).columns:
-            df[col] = df[col].dt.tz_localize(None)
-        df.to_excel(filename, index=False)
+        try:
+
+            df = read_csv(filename,encoding="utf-8")
+            df.to_excel(filename, index=False)
+        except FileNotFoundError:
+            filename = filename.strip(".xlsx")
+            logger.error(f"Cannot export to Excel: The root file {filename} was not found.")
+            print(f"Error: The file {filename} was not found.")
     @staticmethod
     def db_to_json_file(filename: str, include_agencies: bool = False) -> None:
         """

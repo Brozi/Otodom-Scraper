@@ -38,7 +38,7 @@ def main():
     export_service = ExportService()
 
     export_service.to_csv_file(listings,csv_filename)
-    export_service.to_excel_file(listings,excel_filename)
+    export_service.to_excel_file(excel_filename)
 
 if __name__ == "__main__":
     main()
