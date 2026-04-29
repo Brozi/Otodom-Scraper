@@ -1,6 +1,6 @@
 import sys
 import json
-from crawler.crawler import Crawler
+from crawler import Crawler
 import logging
 import time
 from services import ExportService
