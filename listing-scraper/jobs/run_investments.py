@@ -1,6 +1,14 @@
 import sys
 import json
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))  # path/to/jobs
+scraper_dir = os.path.dirname(current_dir)                # path/to/otodomscraper
+# Add scraper_dir to path so it can import modules
+
+sys.path.append(scraper_dir)
 from crawler import Crawler
+os.chdir(scraper_dir)
+#change the dir to the default one
 import logging
 import time
 from services import ExportService
