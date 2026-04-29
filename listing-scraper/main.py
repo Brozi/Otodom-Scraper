@@ -47,7 +47,6 @@ logging.basicConfig(
 
 def scrape_dynamic_chunk(crawler, current_min, current_max, master_list):
     """Recursively splits chunks if they have more than 100 pages."""
-    import copy
     if current_min > current_max:
         return
 
@@ -75,10 +74,7 @@ def scrape_dynamic_chunk(crawler, current_min, current_max, master_list):
 
         scrape_dynamic_chunk(crawler, current_min, mid_price, master_list)
         time.sleep(random.uniform(3.0, 5.0))
-        fresh_crawler = Crawler()
-        fresh_crawler.settings = copy.deepcopy(crawler.settings)
-        scrape_dynamic_chunk(fresh_crawler, mid_price + 1, current_max, master_list)
-        return
+        scrape_dynamic_chunk(crawler, mid_price + 1, current_max, master_list)
 
     # 5. Base case: Safe to scrape (1 to 100 pages)
     else:
