@@ -20,6 +20,10 @@ logging.basicConfig(
     stream=sys.stdout
 
 )
+"""
+This script is used to discover primary investments. It runs parallel with 
+the main discovery script
+"""
 
 
 def discover():

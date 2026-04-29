@@ -5,11 +5,18 @@ import re
 import sys
 import datetime
 import logging
+import os
+
+from jobs import export_to_github_actions
+from services import ExportService
 
 
 class TerminalLogger:
     def __init__(self, filename, stream):
         self.terminal = stream
+        log_dir = os.path.dirname(filename)
+        if log_dir:
+            os.makedirs(log_dir, exist_ok=True)
         self.log_file = open(filename, "a", encoding="utf-8")
         self.ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
@@ -40,6 +47,7 @@ logging.basicConfig(
 
 def scrape_dynamic_chunk(crawler, current_min, current_max, master_list):
     """Recursively splits chunks if they have more than 100 pages."""
+    import copy
     if current_min > current_max:
         return
 
@@ -67,7 +75,10 @@ def scrape_dynamic_chunk(crawler, current_min, current_max, master_list):
 
         scrape_dynamic_chunk(crawler, current_min, mid_price, master_list)
         time.sleep(random.uniform(3.0, 5.0))
-        scrape_dynamic_chunk(crawler, mid_price + 1, current_max, master_list)
+        fresh_crawler = Crawler()
+        fresh_crawler.settings = copy.deepcopy(crawler.settings)
+        scrape_dynamic_chunk(fresh_crawler, mid_price + 1, current_max, master_list)
+        return
 
     # 5. Base case: Safe to scrape (1 to 100 pages)
     else:
@@ -75,19 +86,19 @@ def scrape_dynamic_chunk(crawler, current_min, current_max, master_list):
 
         crawler.start(pages)
 
+        if hasattr(crawler, 'listings'):
+            master_list.extend(crawler.listings)
+            crawler.listings.clear()
         # ADD THIS BLOCK to process investments found in this chunk:
         if hasattr(crawler, 'investments_queue') and crawler.investments_queue:
             crawler.process_investment_queue()
-
-        if hasattr(crawler, 'listings'):
-            master_list.extend(crawler.listings)
-            crawler.listings = []
 
         print(f"Waiting ~30 seconds before the next chunk...")
         time.sleep(random.uniform(45.00, 60.00))
 
 
 def main():
+    export_service = ExportService()
     base_crawler = Crawler()
 
     # 1. Read the EXACT range assigned to this specific GitHub Action runner
@@ -121,10 +132,8 @@ def main():
 
         if hasattr(base_crawler, 'listings'):
             base_crawler.listings = all_listings
-            base_crawler.to_csv_file("listings.csv")
-            from pandas import DataFrame, read_csv
-            df = read_csv("listings.csv")
-            df.to_excel("listings.xlsx", index=False)
+            export_service.to_csv_file(all_listings,"listings.csv")
+            export_service.to_excel_file("listings.xlsx")
         else:
             print("Could not find the listings list to save the CSV.")
 

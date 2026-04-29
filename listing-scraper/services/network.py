@@ -12,14 +12,14 @@ class NetworkService:
     def __init__(self):
         self.session = requests.Session(impersonate="chrome120")
 
-    def _request(self, method: str, url: str, max_retries: int = 3, **kwargs):
+    def _request(self, method: str, url: str, max_retries: int = 3, delay_range: tuple = (6.0, 10.0), **kwargs):
         """Internal method to handle HTTP requests, proactive delays, bot detection, and retries."""
 
         response = None
 
         for attempt in range(1, max_retries + 1):
             # 1. Proactive human-like delay before every request
-            delay = random.uniform(6.0, 10.0)
+            delay = random.uniform(delay_range[0], delay_range[1])
             logger.info(f"Delaying {method} request by {delay:.2f} seconds... (Attempt {attempt}/{max_retries})")
             time.sleep(delay)
 
@@ -39,7 +39,7 @@ class NetworkService:
                     cooldown = random.uniform(600.0, 660.0)
 
                     logger.warning(
-                        f"DATADOME BLOCK on {method}{page_info} (URL: {url}). Sleeping {cooldown / 60:.2f}m...")
+                        f"DATADOME BLOCK on {method}{page_info} (URL: {url}). Sleeping {cooldown / 60:.2f}min...")
                     time.sleep(cooldown)
 
                     self.rotate_session()
@@ -56,15 +56,15 @@ class NetworkService:
         # Fallback if we exhaust all retries and never successfully returned inside the loop
         return response
 
-    def get(self, url: str, **kwargs):
+    def get(self, url: str,delay_range: tuple = (6.0, 10.0), **kwargs):
         """Sends a GET request with automatic DataDome handling."""
         kwargs.setdefault('timeout', 15)
-        return self._request("GET", url, **kwargs)
+        return self._request("GET", url, delay_range=delay_range, **kwargs)
 
-    def post(self, url: str, **kwargs):
+    def post(self, url: str,delay_range: tuple = (6.0, 10.0), **kwargs):
         """Sends a POST request with automatic DataDome handling."""
         kwargs.setdefault('timeout', 15)
-        return self._request("POST", url, **kwargs)
+        return self._request("POST", url, delay_range=delay_range, **kwargs)
 
     def rotate_session(self):
         """Drops the current session cookies and generates a fresh browser fingerprint."""
