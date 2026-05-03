@@ -224,7 +224,10 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Create settings.json
         working-directory: ./listing-scraper
-        run: echo "${{ env.ACTIVE_SETTINGS_JSON }}" > settings.json
+        run: |
+          cat << 'EOF' > settings.json
+          ${{ env.ACTIVE_SETTINGS_JSON }}
+          EOF
       - name: Run Leftover Scraper
         working-directory: ./listing-scraper
         run: python jobs/run_investments.py '${{ toJSON(matrix.urls) }}'
